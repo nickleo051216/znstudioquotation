@@ -3,8 +3,9 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import {
-  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
-  onSnapshot, query, serverTimestamp, where, getDocs, orderBy, limit
+  initializeFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  onSnapshot, query, serverTimestamp, where, getDocs, orderBy, limit,
+  enableIndexedDbPersistence, persistentLocalCache, persistentMultipleTabManager
 } from 'firebase/firestore';
 import {
   Plus, Trash2, FileText, Users, Printer, Save, Copy, ArrowLeft, Package,
@@ -25,7 +26,12 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 const auth = getAuth(app);
-const db = getFirestore(app);
+
+// 初始化 Firestore 並開啟快取
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
 const appId = 'znstudio-prod';
 
 // --- Company Info ---
@@ -203,15 +209,33 @@ const Dashboard = ({ onEdit, onCreate, notify }) => {
 
   useEffect(() => {
     document.title = "ZN Studio 報價系統";
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'quotations'));
-    const unsub = onSnapshot(q, (snapshot) => {
+    // 優化查詢：直接在伺服器端排序，並限制載入最近的 100 筆
+    const q = query(
+      collection(db, 'artifacts', appId, 'public', 'data', 'quotations'),
+      orderBy('updatedAt', 'desc'),
+      limit(100)
+    );
+
+    const unsub = onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      docs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+      // 由於伺服器端已經排序，這裡只需做簡單對齊
       setQuotes(docs);
       setLoading(false);
     }, (err) => {
       console.error(err);
-      notify('載入資料失敗，請檢查權限', 'error');
+      if (err.code === 'failed-precondition') {
+        notify('索引尚未建立，將自動切換為本地排序', 'info');
+        // 退回不排序查詢（待索引建立）
+        const fallbackQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'quotations'));
+        onSnapshot(fallbackQ, s => {
+          const fallbackDocs = s.docs.map(d => ({ id: d.id, ...d.data() }));
+          fallbackDocs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+          setQuotes(fallbackDocs);
+          setLoading(false);
+        });
+      } else {
+        notify('載入資料失敗，請檢查權限', 'error');
+      }
     });
     return () => unsub();
   }, [notify]);
