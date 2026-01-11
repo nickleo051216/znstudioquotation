@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
@@ -22,6 +23,7 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'znstudio-prod';
