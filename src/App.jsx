@@ -405,332 +405,344 @@ const QuoteEditor = ({ quoteId, setActiveQuoteId, onBack, onPrintToggle, isPrint
     setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }));
   };
 
-  notify(`已載入客戶：${c.name}`);
-}
+  const handleClientSelect = (e) => {
+    const c = customers.find(x => x.id === e.target.value);
+    if (c) {
+      setFormData(prev => ({
+        ...prev,
+        clientName: c.name,
+        clientContact: c.contact || '',
+        clientPhone: c.phone || '',
+        clientEmail: c.email || '',
+        clientAddress: c.address || ''
+      }));
+      notify(`已載入客戶：${c.name}`);
+    }
   };
 
-const save = async () => {
-  if (saving) return;
-  setSaving(true);
-  const payload = { ...formData, subtotal, tax, grandTotal, updatedAt: serverTimestamp() };
-  try {
-    if (quoteId) {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'quotations', quoteId), payload);
-      notify('報價單已儲存 (更新)');
-    } else {
-      const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'quotations'), {
-        ...payload, createdAt: serverTimestamp()
-      });
-      setActiveQuoteId(ref.id);
-      notify('報價單已成功新增');
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    const payload = { ...formData, subtotal, tax, grandTotal, updatedAt: serverTimestamp() };
+    try {
+      if (quoteId) {
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'quotations', quoteId), payload);
+        notify('報價單已儲存 (更新)');
+      } else {
+        const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'quotations'), {
+          ...payload, createdAt: serverTimestamp()
+        });
+        setActiveQuoteId(ref.id);
+        notify('報價單已成功新增');
+      }
+    } catch (e) {
+      console.error(e);
+      notify('儲存失敗，請檢查權限或聯絡支援', 'error');
+    } finally {
+      setSaving(false);
     }
-  } catch (e) {
-    console.error(e);
-    notify('儲存失敗，請檢查權限或聯絡支援', 'error');
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
-const handlePrint = () => {
-  onPrintToggle(true);
-  setTimeout(() => window.print(), 100);
-};
+  const handlePrint = () => {
+    onPrintToggle(true);
+    setTimeout(() => window.print(), 100);
+  };
 
-if (isPrintMode) {
-  return (
-    <div className="bg-white text-gray-900 p-8 max-w-4xl mx-auto print:p-4">
-      <button onClick={() => onPrintToggle(false)} className="no-print fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded">
-        關閉預覽
-      </button>
+  if (isPrintMode) {
+    return (
+      <div className="bg-white text-gray-900 p-8 max-w-4xl mx-auto print:p-4">
+        <button onClick={() => onPrintToggle(false)} className="no-print fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded">
+          關閉預覽
+        </button>
 
-      {/* Print Header */}
-      <div className="flex justify-between items-start mb-8 border-b-2 border-cyan-500 pb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-cyan-600">ZN Studio</h1>
-          <h2 className="text-lg text-gray-600">專案報價單</h2>
-          <div className="mt-2 text-sm text-gray-500">
-            <p>{COMPANY_INFO.address}</p>
-            <p>電話：{COMPANY_INFO.phone}</p>
-            <p>Email：{COMPANY_INFO.email}</p>
+        {/* Print Header */}
+        <div className="flex justify-between items-start mb-8 border-b-2 border-cyan-500 pb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-cyan-600">ZN Studio</h1>
+            <h2 className="text-lg text-gray-600">專案報價單</h2>
+            <div className="mt-2 text-sm text-gray-500">
+              <p>{COMPANY_INFO.address}</p>
+              <p>電話：{COMPANY_INFO.phone}</p>
+              <p>Email：{COMPANY_INFO.email}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-500">報價編號</p>
+            <p className="text-xl font-bold text-cyan-600">{formData.quoteNumber}</p>
+            <p className="text-sm text-gray-500 mt-2">報價日期：{formData.date}</p>
+            <p className="text-sm text-gray-500">有效期限：{formData.validUntil}</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500">報價編號</p>
-          <p className="text-xl font-bold text-cyan-600">{formData.quoteNumber}</p>
-          <p className="text-sm text-gray-500 mt-2">報價日期：{formData.date}</p>
-          <p className="text-sm text-gray-500">有效期限：{formData.validUntil}</p>
+
+        {/* Project Name */}
+        <div className="bg-cyan-50 p-3 rounded mb-4">
+          <span className="text-xs text-cyan-600 font-bold">專案名稱</span>
+          <p className="text-lg font-medium">{formData.projectName || '未命名專案'}</p>
+        </div>
+
+        {/* Client Info */}
+        <div className="mb-4">
+          <h3 className="font-bold text-gray-700 border-b pb-1 mb-2">客戶資料</h3>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <p><span className="text-gray-500">客戶名稱：</span>{formData.clientName}</p>
+            <p><span className="text-gray-500">聯絡人：</span>{formData.clientContact}</p>
+            <p><span className="text-gray-500">電話：</span>{formData.clientPhone}</p>
+            <p><span className="text-gray-500">Email：</span>{formData.clientEmail}</p>
+            <p className="col-span-2"><span className="text-gray-500">地址：</span>{formData.clientAddress}</p>
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <table className="w-full border-collapse mb-4">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2 text-left text-sm">No.</th>
+              <th className="border p-2 text-left text-sm">項目名稱</th>
+              <th className="border p-2 text-left text-sm">規格說明</th>
+              <th className="border p-2 text-center text-sm">單位</th>
+              <th className="border p-2 text-right text-sm">數量</th>
+              <th className="border p-2 text-right text-sm">單價</th>
+              <th className="border p-2 text-right text-sm">小計</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formData.items.map((item, idx) => (
+              <tr key={item.id}>
+                <td className="border p-2 text-sm">{idx + 1}</td>
+                <td className="border p-2 text-sm font-medium">{item.name}</td>
+                <td className="border p-2 text-sm text-gray-600">{item.spec}</td>
+                <td className="border p-2 text-sm text-center">{item.unit}</td>
+                <td className="border p-2 text-sm text-right">{item.qty}</td>
+                <td className="border p-2 text-sm text-right">{item.price?.toLocaleString()}</td>
+                <td className="border p-2 text-sm text-right font-medium">{(item.price * item.qty).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Totals */}
+        <div className="flex justify-end mb-4">
+          <div className="w-64 space-y-1">
+            <div className="flex justify-between text-sm"><span>小計</span><span>NT$ {subtotal.toLocaleString()}</span></div>
+            <div className="flex justify-between text-sm"><span>稅額 (5%)</span><span>NT$ {tax.toLocaleString()}</span></div>
+            <div className="flex justify-between font-bold text-lg border-t pt-1">
+              <span>總計</span><span className="text-cyan-600">NT$ {grandTotal.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment & Notes */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div>
+            <p className="text-sm"><span className="text-gray-500">付款方式：</span>{formData.paymentMethod}</p>
+            <p className="text-sm"><span className="text-gray-500">付款條件：</span>{formData.paymentTerms}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">備註</p>
+            <p className="text-sm whitespace-pre-wrap">{formData.notes}</p>
+          </div>
+        </div>
+
+        {/* Signatures */}
+        <div className="flex gap-8 mt-16">
+          <div className="flex-1 text-center">
+            <div className="border-b border-gray-400 pb-2 mb-2"></div>
+            <p className="text-sm text-gray-600">ZN Studio (簽章)</p>
+          </div>
+          <div className="flex-1 text-center">
+            <div className="border-b border-gray-400 pb-2 mb-2"></div>
+            <p className="text-sm text-gray-600">客戶簽名確認</p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center text-xs text-gray-400">
+          {COMPANY_INFO.website} | {COMPANY_INFO.email}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap gap-2 items-center justify-between bg-gray-800 p-4 rounded-lg border border-gray-700">
+        <button onClick={onBack} className="flex items-center text-gray-400 hover:text-white">
+          <ArrowLeft className="w-4 h-4 mr-1" /> 返回
+        </button>
+        <div className="flex gap-2">
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            className="bg-gray-700 border-gray-600 rounded text-sm text-white px-2 py-1"
+          >
+            <option value="draft">草稿</option>
+            <option value="sent">已發送</option>
+            <option value="confirmed">已確認</option>
+            <option value="cancelled">已取消</option>
+          </select>
+          <button onClick={handlePrint} className="flex items-center px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">
+            <Printer className="w-4 h-4 mr-1" /> 列印
+          </button>
+          <button onClick={save} disabled={saving} className="flex items-center px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700">
+            <Save className="w-4 h-4 mr-1" /> {saving ? '儲存中...' : '儲存'}
+          </button>
         </div>
       </div>
 
-      {/* Project Name */}
-      <div className="bg-cyan-50 p-3 rounded mb-4">
-        <span className="text-xs text-cyan-600 font-bold">專案名稱</span>
-        <p className="text-lg font-medium">{formData.projectName || '未命名專案'}</p>
-      </div>
+      {/* Form */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Quote Info */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
+          <h3 className="font-bold text-cyan-400 border-b border-gray-700 pb-2">報價單資訊</h3>
+          <div>
+            <label className="text-xs text-gray-400">報價編號</label>
+            <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" value={formData.quoteNumber} readOnly />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400">專案名稱</label>
+            <input
+              className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
+              value={formData.projectName}
+              onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+              placeholder="請輸入專案名稱"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-gray-400">報價日期</label>
+              <input type="date" className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
+                value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400">有效期限</label>
+              <input type="date" className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
+                value={formData.validUntil} onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })} />
+            </div>
+          </div>
+        </div>
 
-      {/* Client Info */}
-      <div className="mb-4">
-        <h3 className="font-bold text-gray-700 border-b pb-1 mb-2">客戶資料</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <p><span className="text-gray-500">客戶名稱：</span>{formData.clientName}</p>
-          <p><span className="text-gray-500">聯絡人：</span>{formData.clientContact}</p>
-          <p><span className="text-gray-500">電話：</span>{formData.clientPhone}</p>
-          <p><span className="text-gray-500">Email：</span>{formData.clientEmail}</p>
-          <p className="col-span-2"><span className="text-gray-500">地址：</span>{formData.clientAddress}</p>
+        {/* Middle Column - Client Info */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
+          <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+            <h3 className="font-bold text-cyan-400">客戶資料</h3>
+            <select onChange={handleClientSelect} className="bg-gray-700 text-xs text-gray-300 rounded px-2 py-1" defaultValue="">
+              <option value="" disabled>選擇現有客戶</option>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="客戶名稱"
+            value={formData.clientName} onChange={(e) => setFormData({ ...formData, clientName: e.target.value })} />
+          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="聯絡人"
+            value={formData.clientContact} onChange={(e) => setFormData({ ...formData, clientContact: e.target.value })} />
+          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="電話"
+            value={formData.clientPhone} onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })} />
+          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="Email"
+            value={formData.clientEmail} onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })} />
+          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="地址"
+            value={formData.clientAddress} onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })} />
+        </div>
+
+        {/* Right Column - Payment */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
+          <h3 className="font-bold text-cyan-400 border-b border-gray-700 pb-2">付款資訊</h3>
+          <div>
+            <label className="text-xs text-gray-400">付款方式</label>
+            <select className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
+              value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}>
+              {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-400">付款條件</label>
+            <select className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
+              value={formData.paymentTerms} onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}>
+              {PAYMENT_TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-400">備註</label>
+            <textarea className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white h-24"
+              value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
+          </div>
         </div>
       </div>
 
       {/* Items Table */}
-      <table className="w-full border-collapse mb-4">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2 text-left text-sm">No.</th>
-            <th className="border p-2 text-left text-sm">項目名稱</th>
-            <th className="border p-2 text-left text-sm">規格說明</th>
-            <th className="border p-2 text-center text-sm">單位</th>
-            <th className="border p-2 text-right text-sm">數量</th>
-            <th className="border p-2 text-right text-sm">單價</th>
-            <th className="border p-2 text-right text-sm">小計</th>
-          </tr>
-        </thead>
-        <tbody>
-          {formData.items.map((item, idx) => (
-            <tr key={item.id}>
-              <td className="border p-2 text-sm">{idx + 1}</td>
-              <td className="border p-2 text-sm font-medium">{item.name}</td>
-              <td className="border p-2 text-sm text-gray-600">{item.spec}</td>
-              <td className="border p-2 text-sm text-center">{item.unit}</td>
-              <td className="border p-2 text-sm text-right">{item.qty}</td>
-              <td className="border p-2 text-sm text-right">{item.price?.toLocaleString()}</td>
-              <td className="border p-2 text-sm text-right font-medium">{(item.price * item.qty).toLocaleString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Totals */}
-      <div className="flex justify-end mb-4">
-        <div className="w-64 space-y-1">
-          <div className="flex justify-between text-sm"><span>小計</span><span>NT$ {subtotal.toLocaleString()}</span></div>
-          <div className="flex justify-between text-sm"><span>稅額 (5%)</span><span>NT$ {tax.toLocaleString()}</span></div>
-          <div className="flex justify-between font-bold text-lg border-t pt-1">
-            <span>總計</span><span className="text-cyan-600">NT$ {grandTotal.toLocaleString()}</span>
+      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+          <h3 className="font-bold text-cyan-400">報價項目</h3>
+          <div className="flex gap-2">
+            <button onClick={() => addItem()} className="flex items-center text-sm text-cyan-400 hover:text-cyan-300">
+              <Plus className="w-4 h-4 mr-1" /> 新增項目
+            </button>
+            <select onChange={(e) => { const p = products.find(x => x.id === e.target.value); if (p) addItem(p); e.target.value = ''; }}
+              className="bg-gray-700 text-xs text-gray-300 rounded px-2 py-1" defaultValue="">
+              <option value="" disabled>從項目庫新增</option>
+              {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
           </div>
         </div>
-      </div>
+        <table className="w-full">
+          <thead className="bg-gray-750">
+            <tr>
+              <th className="px-3 py-2 text-left text-xs text-gray-400 w-8">#</th>
+              <th className="px-3 py-2 text-left text-xs text-gray-400">項目名稱</th>
+              <th className="px-3 py-2 text-left text-xs text-gray-400">規格說明</th>
+              <th className="px-3 py-2 text-center text-xs text-gray-400 w-20">單位</th>
+              <th className="px-3 py-2 text-right text-xs text-gray-400 w-20">數量</th>
+              <th className="px-3 py-2 text-right text-xs text-gray-400 w-28">單價</th>
+              <th className="px-3 py-2 text-right text-xs text-gray-400 w-28">小計</th>
+              <th className="px-3 py-2 w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-700">
+            {formData.items.map((item, idx) => (
+              <tr key={item.id}>
+                <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
+                <td className="px-3 py-2">
+                  <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm"
+                    value={item.name} onChange={(e) => handleItemChange(item.id, 'name', e.target.value)} placeholder="項目名稱" />
+                </td>
+                <td className="px-3 py-2">
+                  <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm"
+                    value={item.spec} onChange={(e) => handleItemChange(item.id, 'spec', e.target.value)} placeholder="規格說明" />
+                </td>
+                <td className="px-3 py-2">
+                  <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-center"
+                    value={item.unit} onChange={(e) => handleItemChange(item.id, 'unit', e.target.value)} />
+                </td>
+                <td className="px-3 py-2">
+                  <input type="number" className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-right"
+                    value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} />
+                </td>
+                <td className="px-3 py-2">
+                  <input type="number" className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-right"
+                    value={item.price} onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} />
+                </td>
+                <td className="px-3 py-2 text-right text-white font-medium">{(item.price * item.qty).toLocaleString()}</td>
+                <td className="px-3 py-2">
+                  <button onClick={() => setFormData(p => ({ ...p, items: p.items.filter(i => i.id !== item.id) }))}
+                    className="text-gray-500 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {/* Payment & Notes */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div>
-          <p className="text-sm"><span className="text-gray-500">付款方式：</span>{formData.paymentMethod}</p>
-          <p className="text-sm"><span className="text-gray-500">付款條件：</span>{formData.paymentTerms}</p>
+        {/* Totals */}
+        <div className="p-4 border-t border-gray-700 flex justify-end">
+          <div className="w-64 space-y-2">
+            <div className="flex justify-between text-gray-400"><span>小計</span><span>NT$ {subtotal.toLocaleString()}</span></div>
+            <div className="flex justify-between text-gray-400"><span>稅額 (5%)</span><span>NT$ {tax.toLocaleString()}</span></div>
+            <div className="flex justify-between font-bold text-lg text-white border-t border-gray-600 pt-2">
+              <span>總計</span><span className="text-cyan-400">NT$ {grandTotal.toLocaleString()}</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 mb-1">備註</p>
-          <p className="text-sm whitespace-pre-wrap">{formData.notes}</p>
-        </div>
-      </div>
-
-      {/* Signatures */}
-      <div className="flex gap-8 mt-16">
-        <div className="flex-1 text-center">
-          <div className="border-b border-gray-400 pb-2 mb-2"></div>
-          <p className="text-sm text-gray-600">ZN Studio (簽章)</p>
-        </div>
-        <div className="flex-1 text-center">
-          <div className="border-b border-gray-400 pb-2 mb-2"></div>
-          <p className="text-sm text-gray-600">客戶簽名確認</p>
-        </div>
-      </div>
-
-      <div className="mt-8 text-center text-xs text-gray-400">
-        {COMPANY_INFO.website} | {COMPANY_INFO.email}
       </div>
     </div>
   );
-}
-
-return (
-  <div className="space-y-6">
-    {/* Header */}
-    <div className="flex flex-wrap gap-2 items-center justify-between bg-gray-800 p-4 rounded-lg border border-gray-700">
-      <button onClick={onBack} className="flex items-center text-gray-400 hover:text-white">
-        <ArrowLeft className="w-4 h-4 mr-1" /> 返回
-      </button>
-      <div className="flex gap-2">
-        <select
-          value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-          className="bg-gray-700 border-gray-600 rounded text-sm text-white px-2 py-1"
-        >
-          <option value="draft">草稿</option>
-          <option value="sent">已發送</option>
-          <option value="confirmed">已確認</option>
-          <option value="cancelled">已取消</option>
-        </select>
-        <button onClick={handlePrint} className="flex items-center px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">
-          <Printer className="w-4 h-4 mr-1" /> 列印
-        </button>
-        <button onClick={save} disabled={saving} className="flex items-center px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-700">
-          <Save className="w-4 h-4 mr-1" /> {saving ? '儲存中...' : '儲存'}
-        </button>
-      </div>
-    </div>
-
-    {/* Form */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column - Quote Info */}
-      <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
-        <h3 className="font-bold text-cyan-400 border-b border-gray-700 pb-2">報價單資訊</h3>
-        <div>
-          <label className="text-xs text-gray-400">報價編號</label>
-          <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" value={formData.quoteNumber} readOnly />
-        </div>
-        <div>
-          <label className="text-xs text-gray-400">專案名稱</label>
-          <input
-            className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
-            value={formData.projectName}
-            onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
-            placeholder="請輸入專案名稱"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs text-gray-400">報價日期</label>
-            <input type="date" className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
-              value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400">有效期限</label>
-            <input type="date" className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
-              value={formData.validUntil} onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })} />
-          </div>
-        </div>
-      </div>
-
-      {/* Middle Column - Client Info */}
-      <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
-        <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-          <h3 className="font-bold text-cyan-400">客戶資料</h3>
-          <select onChange={handleClientSelect} className="bg-gray-700 text-xs text-gray-300 rounded px-2 py-1" defaultValue="">
-            <option value="" disabled>選擇現有客戶</option>
-            {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="客戶名稱"
-          value={formData.clientName} onChange={(e) => setFormData({ ...formData, clientName: e.target.value })} />
-        <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="聯絡人"
-          value={formData.clientContact} onChange={(e) => setFormData({ ...formData, clientContact: e.target.value })} />
-        <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="電話"
-          value={formData.clientPhone} onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })} />
-        <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="Email"
-          value={formData.clientEmail} onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })} />
-        <input className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white" placeholder="地址"
-          value={formData.clientAddress} onChange={(e) => setFormData({ ...formData, clientAddress: e.target.value })} />
-      </div>
-
-      {/* Right Column - Payment */}
-      <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 space-y-4">
-        <h3 className="font-bold text-cyan-400 border-b border-gray-700 pb-2">付款資訊</h3>
-        <div>
-          <label className="text-xs text-gray-400">付款方式</label>
-          <select className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
-            value={formData.paymentMethod} onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}>
-            {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-gray-400">付款條件</label>
-          <select className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white"
-            value={formData.paymentTerms} onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}>
-            {PAYMENT_TERMS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-gray-400">備註</label>
-          <textarea className="w-full bg-gray-700 border-gray-600 rounded px-3 py-2 text-white h-24"
-            value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
-        </div>
-      </div>
-    </div>
-
-    {/* Items Table */}
-    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-        <h3 className="font-bold text-cyan-400">報價項目</h3>
-        <div className="flex gap-2">
-          <button onClick={() => addItem()} className="flex items-center text-sm text-cyan-400 hover:text-cyan-300">
-            <Plus className="w-4 h-4 mr-1" /> 新增項目
-          </button>
-          <select onChange={(e) => { const p = products.find(x => x.id === e.target.value); if (p) addItem(p); e.target.value = ''; }}
-            className="bg-gray-700 text-xs text-gray-300 rounded px-2 py-1" defaultValue="">
-            <option value="" disabled>從項目庫新增</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-      </div>
-      <table className="w-full">
-        <thead className="bg-gray-750">
-          <tr>
-            <th className="px-3 py-2 text-left text-xs text-gray-400 w-8">#</th>
-            <th className="px-3 py-2 text-left text-xs text-gray-400">項目名稱</th>
-            <th className="px-3 py-2 text-left text-xs text-gray-400">規格說明</th>
-            <th className="px-3 py-2 text-center text-xs text-gray-400 w-20">單位</th>
-            <th className="px-3 py-2 text-right text-xs text-gray-400 w-20">數量</th>
-            <th className="px-3 py-2 text-right text-xs text-gray-400 w-28">單價</th>
-            <th className="px-3 py-2 text-right text-xs text-gray-400 w-28">小計</th>
-            <th className="px-3 py-2 w-10"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-700">
-          {formData.items.map((item, idx) => (
-            <tr key={item.id}>
-              <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
-              <td className="px-3 py-2">
-                <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm"
-                  value={item.name} onChange={(e) => handleItemChange(item.id, 'name', e.target.value)} placeholder="項目名稱" />
-              </td>
-              <td className="px-3 py-2">
-                <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm"
-                  value={item.spec} onChange={(e) => handleItemChange(item.id, 'spec', e.target.value)} placeholder="規格說明" />
-              </td>
-              <td className="px-3 py-2">
-                <input className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-center"
-                  value={item.unit} onChange={(e) => handleItemChange(item.id, 'unit', e.target.value)} />
-              </td>
-              <td className="px-3 py-2">
-                <input type="number" className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-right"
-                  value={item.qty} onChange={(e) => handleItemChange(item.id, 'qty', Number(e.target.value))} />
-              </td>
-              <td className="px-3 py-2">
-                <input type="number" className="w-full bg-gray-700 border-gray-600 rounded px-2 py-1 text-white text-sm text-right"
-                  value={item.price} onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} />
-              </td>
-              <td className="px-3 py-2 text-right text-white font-medium">{(item.price * item.qty).toLocaleString()}</td>
-              <td className="px-3 py-2">
-                <button onClick={() => setFormData(p => ({ ...p, items: p.items.filter(i => i.id !== item.id) }))}
-                  className="text-gray-500 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Totals */}
-      <div className="p-4 border-t border-gray-700 flex justify-end">
-        <div className="w-64 space-y-2">
-          <div className="flex justify-between text-gray-400"><span>小計</span><span>NT$ {subtotal.toLocaleString()}</span></div>
-          <div className="flex justify-between text-gray-400"><span>稅額 (5%)</span><span>NT$ {tax.toLocaleString()}</span></div>
-          <div className="flex justify-between font-bold text-lg text-white border-t border-gray-600 pt-2">
-            <span>總計</span><span className="text-cyan-400">NT$ {grandTotal.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 };
 
 // --- Customer Manager ---
