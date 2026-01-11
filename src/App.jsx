@@ -448,25 +448,33 @@ const QuoteEditor = ({ quoteId, setActiveQuoteId, onBack, onPrintToggle, isPrint
   const save = async () => {
     if (saving) return;
     setSaving(true);
+
+    // 建立完整的資料物件
     const payload = { ...formData, subtotal, tax, grandTotal, updatedAt: serverTimestamp() };
+
     try {
       if (quoteId) {
-        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'quotations', quoteId), payload);
-        notify('報價單已儲存 (更新)');
+        // 更新現有報價單
+        const p = updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'quotations', quoteId), payload);
+        notify('儲存成功'); // 樂觀通知：本地寫入通常極快
+        await p;
       } else {
+        // 新增報價單
         const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'quotations'), {
           ...payload, createdAt: serverTimestamp()
         });
         setActiveQuoteId(ref.id);
-        notify('報價單已成功新增');
+        notify('已建立新報價單');
       }
     } catch (e) {
       console.error(e);
-      notify('儲存失敗，請檢查權限或聯絡支援', 'error');
+      notify('儲存發生錯誤', 'error');
     } finally {
+      // 確保即使網路慢，本地寫入完成後也立刻釋放按鈕狀態
       setSaving(false);
     }
   };
+
 
   const handlePrint = () => {
     onPrintToggle(true);
