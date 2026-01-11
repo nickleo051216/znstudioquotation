@@ -1,12 +1,12 @@
 ﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
-import { LOGO_BASE64, STAMP_BASE64 } from './assets';
-getAuth,
+  getAuth,
   onAuthStateChanged,
   signInAnonymously,
   signInWithCustomToken
 } from 'firebase/auth';
+import { LOGO_BASE64, STAMP_BASE64 } from './assets';
 import {
   getFirestore,
   collection,
