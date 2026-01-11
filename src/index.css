@@ -1,27 +1,98 @@
-/* 這是重置樣式檔
-  我們把原本 Vite 預設的 max-width: 1280px 限制拿掉
-  讓 Tailwind CSS 可以完全接管版面，達成 100% 全螢幕寬度 
-*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* ZN Studio - Custom Styles */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --zn-cyan: #06b6d4;
+  --zn-dark: #111827;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  /* 強制 body 佔滿寬度 */
-  width: 100%;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-#root {
-  /* 關鍵：拿掉原本的 max-width 和 margin: 0 auto */
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+/* Button Styles */
+.btn-primary {
+  @apply flex items-center px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 shadow-lg shadow-cyan-500/25 transition-all font-medium;
+}
+
+.btn-secondary {
+  @apply flex items-center px-3 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600;
+}
+
+/* Dark theme inputs */
+input, select, textarea {
+  @apply transition-all duration-200;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply ring-2 ring-cyan-500 border-cyan-500 outline-none;
+}
+
+/* Print Styles */
+.print-footer {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 10mm 10mm 20mm 10mm;
+    size: A4 portrait;
+  }
+  
+  html, body, #root {
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .min-h-screen { min-height: 0 !important; }
+  .no-print { display: none !important; }
+  .print-container { padding: 0; margin: 0; width: 100%; }
+  .page-break-inside-avoid { page-break-inside: avoid; }
+
+  /* Table Styles */
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+  }
+  thead { display: table-header-group !important; }
+  tbody { display: table-row-group !important; }
+  tfoot { display: table-row-group !important; }
+
+  /* Print Footer */
+  .print-footer {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 14mm;
+    padding: 3mm 10mm;
+    border-top: 1px solid #d1d5db;
+    background: white;
+    font-size: 9pt;
+    color: #6b7280;
+  }
+  
+  .print-footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .print-footer-url {
+    color: #06b6d4;
+    font-weight: 600;
+  }
+  
+  .print-footer-company {
+    color: #9ca3af;
+    font-size: 8pt;
+  }
 }
