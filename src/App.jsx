@@ -41,6 +41,8 @@ const WEBHOOKS = {
   writeQuote: `${API_BASE}/write-quote`,
   readCustomers: `${API_BASE}/read-customers`,
   writeCustomer: `${API_BASE}/write-customer`,
+  readNotesTemplates: `${API_BASE}/read-notes-templates`,
+  writeNoteTemplate: `${API_BASE}/write-note-template`,
   sendEmail: `${API_BASE}/send-email`,
   lookupTaxId: `${API_BASE}/lookup-taxid`,
 };
@@ -134,6 +136,29 @@ const api = {
       return await res.json();
     } catch (err) {
       console.error("Failed to lookup taxId:", err);
+      return { success: false, error: err.message };
+    }
+  },
+  async fetchNotesTemplates() {
+    try {
+      const res = await fetch(WEBHOOKS.readNotesTemplates);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.error("Failed to fetch notes templates:", err);
+      return [];
+    }
+  },
+  async saveNoteTemplate(template, isDelete = false) {
+    try {
+      const res = await fetch(WEBHOOKS.writeNoteTemplate, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...template, _delete: isDelete }),
+      });
+      return await res.json();
+    } catch (err) {
+      console.error("Failed to save note template:", err);
       return { success: false, error: err.message };
     }
   },
@@ -1001,7 +1026,32 @@ const CustomerForm = ({ customer, onSave, onCancel }) => {
 const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates, brand, setBrand, services, setServices }) => {
   const [newNote, setNewNote] = useState({ label: "", text: "" });
   const [newService, setNewService] = useState({ name: "", desc: "", unit: "式", price: 0 });
-  const addNoteTemplate = () => { if (newNote.label && newNote.text) { setNotesTemplates(prev => [...prev, { id: genId(), ...newNote }]); setNewNote({ label: "", text: "" }); } };
+
+  // 新增備註模板並同步到後端
+  const addNoteTemplate = async () => {
+    if (!newNote.label || !newNote.text) return;
+    const templateToSave = { id: genId(), ...newNote };
+    setNotesTemplates(prev => [...prev, templateToSave]);
+    setNewNote({ label: "", text: "" });
+    // 同步到 n8n
+    try {
+      await api.saveNoteTemplate(templateToSave);
+    } catch (err) {
+      console.error("Failed to sync note template:", err);
+    }
+  };
+
+  // 刪除備註模板並同步到後端
+  const deleteNoteTemplate = async (template) => {
+    setNotesTemplates(prev => prev.filter(n => n.id !== template.id));
+    // 同步刪除到 n8n
+    try {
+      await api.saveNoteTemplate(template, true);
+    } catch (err) {
+      console.error("Failed to sync delete note template:", err);
+    }
+  };
+
   const addService = () => { if (newService.name && newService.price > 0) { setServices(prev => [...prev, { id: genId(), ...newService }]); setNewService({ name: "", desc: "", unit: "式", price: 0 }); } };
   const removeService = (id) => setServices(prev => prev.filter(s => s.id !== id));
   const inputClsN = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
@@ -1079,7 +1129,7 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
           {notesTemplates.map(t => (
             <div key={t.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
               <div className="flex-1 min-w-0"><div className="text-xs font-bold text-emerald-700">{t.label}</div><div className="text-xs text-gray-500 mt-0.5 line-clamp-2">{t.text}</div></div>
-              <button onClick={() => setNotesTemplates(prev => prev.filter(n => n.id !== t.id))} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-400 flex-shrink-0"><X size={14} /></button>
+              <button onClick={() => deleteNoteTemplate(t)} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-400 flex-shrink-0"><X size={14} /></button>
             </div>
           ))}
         </div>
@@ -1197,12 +1247,17 @@ export default function App() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [quotesData, customersData] = await Promise.all([
+        const [quotesData, customersData, notesData] = await Promise.all([
           api.fetchQuotes(),
           api.fetchCustomers(),
+          api.fetchNotesTemplates(),
         ]);
         setQuotes(quotesData.length > 0 ? quotesData : SAMPLE_QUOTES);
         setCustomers(customersData.length > 0 ? customersData : SAMPLE_CUSTOMERS);
+        // 備註模板：後端有資料就用後端，否則用預設
+        if (notesData.length > 0) {
+          setNotesTemplates(notesData);
+        }
       } catch (err) {
         console.error("Failed to load data:", err);
         // 使用 sample data 作為 fallback

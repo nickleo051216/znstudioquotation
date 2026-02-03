@@ -1,0 +1,155 @@
+{
+    "name": "ZN Quotation - Notes Templates",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "read-notes-templates",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "name": "Read Notes Templates Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                400,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "write-note-template",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "name": "Write Note Template Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                400,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{$env.GAS_WEBAPP_URL}}",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "value": "={{ $json._delete ? 'delete_note_template' : 'save_note_template' }}"
+                        },
+                        {
+                            "name": "id",
+                            "value": "={{ $json.id }}"
+                        },
+                        {
+                            "name": "label",
+                            "value": "={{ $json.label }}"
+                        },
+                        {
+                            "name": "text",
+                            "value": "={{ $json.text }}"
+                        },
+                        {
+                            "name": "_delete",
+                            "value": "={{ $json._delete || false }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "POST to GAS (Write)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                600,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{$env.GAS_WEBAPP_URL}}?action=read_notes_templates",
+                "options": {}
+            },
+            "name": "GET from GAS (Read)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                600,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}"
+            },
+            "name": "Respond Read",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                800,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}"
+            },
+            "name": "Respond Write",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                800,
+                500
+            ]
+        }
+    ],
+    "connections": {
+        "Read Notes Templates Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "GET from GAS (Read)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GET from GAS (Read)": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Read",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write Note Template Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "POST to GAS (Write)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "POST to GAS (Write)": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Write",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {},
+    "pinData": {}
+}
