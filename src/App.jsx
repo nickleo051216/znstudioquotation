@@ -481,6 +481,22 @@ const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQu
   );
 };
 
+// ─── Toast Component ───
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium flex items-center gap-2 transform transition-all duration-300 z-50 ${type === "error" ? "bg-red-600" : "bg-green-600"
+      }`}>
+      {type === "error" ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
+      {message}
+    </div>
+  );
+};
+
 // ─── Notes Template Picker ───
 const NotesTemplatePicker = ({ notesTemplates, onSelect, onClose }) => (
   <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-xl border border-gray-200 max-h-64 overflow-y-auto" style={{ minWidth: 320 }}>
@@ -1120,6 +1136,13 @@ export default function App() {
   const [notesTemplates, setNotesTemplates] = useState(DEFAULT_NOTES_TEMPLATES);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  const closeToast = () => setToast(null);
 
   // 公司資訊 (可編輯，儲存到 localStorage)
   const [brand, setBrand] = useState(() => {
@@ -1175,9 +1198,15 @@ export default function App() {
         return exists ? prev.map(q => q.id === quote.id ? quote : q) : [...prev, quote];
       });
       // 同步到 n8n
-      await api.saveQuote(quote);
+      const res = await api.saveQuote(quote);
+      if (res.success) {
+        showToast("✅ 資料同步成功！");
+      } else {
+        showToast("⚠️ 資料已存本地，但同步 n8n 失敗", "error");
+      }
     } catch (err) {
       console.error("Failed to save quote:", err);
+      showToast("❌ 儲存失敗：" + err.message, "error");
     } finally {
       setSyncing(false);
       setPage("quotes");
@@ -1199,9 +1228,19 @@ export default function App() {
       try {
         // 使用 quoteNumber 作為刪除 Key，因為 Sheets 是用報價單號當主鍵
         // 傳送 quoteNumber 給後端，而非內部 id
-        await api.deleteQuote(quoteToDelete.quoteNumber);
+        const res = await api.deleteQuote(quoteToDelete.quoteNumber);
+
+        // 檢查回傳結果 (GAS 通常回傳 array 或 object)
+        // 假設 api.deleteQuote 已經處理好 res 格式
+        if (res && (res.success || (Array.isArray(res) && res[0]?.success))) {
+          showToast("🗑️ 刪除同步成功！");
+        } else {
+          console.warn("Delete response:", res);
+          showToast("⚠️ 本地已刪除，但後端同步狀況不明", "error");
+        }
       } catch (err) {
         console.error("Failed to sync delete:", err);
+        showToast("❌ 刪除同步失敗", "error");
       } finally {
         setSyncing(false);
       }
@@ -1294,6 +1333,15 @@ export default function App() {
             <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-gray-600">同步中...</span>
           </div>
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={closeToast}
+          />
         )}
       </main>
     </div>
