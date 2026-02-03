@@ -1223,7 +1223,7 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
   const inputClsN = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 w-full max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
       <p className="text-sm text-gray-500 mb-8">管理公司資訊、匯款資訊與備註模板</p>
 
