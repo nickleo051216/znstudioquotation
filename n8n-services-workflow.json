@@ -56,7 +56,7 @@
         {
             "parameters": {
                 "method": "GET",
-                "url": "https://script.google.com/macros/s/AKfycbyCjvhIk453nrUPdZ3R8dGK6Ni3v3tmVsxfOD5CUXaf0GA50Sbp3teAg8-xPPS-YC-D/exec",
+                "url": "https://script.google.com/macros/s/AKfycbwxx70u7H4a20O1PffVCYSi_N_1e9XjUck6ie97M6-MhAXz5XfhYbXkuz8v3qhqaWco/exec",
                 "sendQuery": true,
                 "queryParameters": {
                     "parameters": [
@@ -86,7 +86,7 @@
         {
             "parameters": {
                 "method": "POST",
-                "url": "https://script.google.com/macros/s/AKfycbyCjvhIk453nrUPdZ3R8dGK6Ni3v3tmVsxfOD5CUXaf0GA50Sbp3teAg8-xPPS-YC-D/exec",
+                "url": "https://script.google.com/macros/s/AKfycbwxx70u7H4a20O1PffVCYSi_N_1e9XjUck6ie97M6-MhAXz5XfhYbXkuz8v3qhqaWco/exec",
                 "sendBody": true,
                 "specifyBody": "json",
                 "jsonBody": "={{ JSON.stringify($json) }}",
