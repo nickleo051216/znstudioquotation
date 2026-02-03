@@ -912,10 +912,28 @@ const CustomerList = ({ customers, setCustomers }) => {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const filtered = customers.filter(c => !search || c.name.includes(search) || c.contact.includes(search) || c.phone.includes(search));
 
-  const handleSave = (c) => {
-    if (editingCustomer) setCustomers(prev => prev.map(x => x.id === c.id ? c : x));
-    else setCustomers(prev => [...prev, { ...c, id: `C${String(prev.length + 1).padStart(3, "0")}`, createdAt: today() }]);
-    setShowForm(false); setEditingCustomer(null);
+  const handleSave = async (c) => {
+    let customerToSave;
+    if (editingCustomer) {
+      customerToSave = c;
+      setCustomers(prev => prev.map(x => x.id === c.id ? c : x));
+    } else {
+      customerToSave = { ...c, id: `C${String(customers.length + 1).padStart(3, "0")}`, createdAt: today() };
+      setCustomers(prev => [...prev, customerToSave]);
+    }
+
+    // 同步到 n8n webhook
+    try {
+      const res = await api.saveCustomer(customerToSave);
+      if (!res.success) {
+        console.warn("Customer sync warning:", res);
+      }
+    } catch (err) {
+      console.error("Failed to sync customer:", err);
+    }
+
+    setShowForm(false);
+    setEditingCustomer(null);
   };
 
   return (
