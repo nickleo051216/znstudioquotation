@@ -1,7 +1,8 @@
 /**
- * ZN Studio 報價管理系統 - 完整後端腳本 (v2.3 備註模板同步版)
+ * ZN Studio 報價管理系統 - 完整後端腳本 (v2.4 客戶資料同步版)
  * 
  * 📌 更新日誌：
+ *    v2.4: 新增客戶資料同步功能 (saveCustomer / deleteCustomer)
  *    v2.3: 新增備註模板同步功能 (doGet 讀取 + doPost 寫入/刪除)
  *    v2.2: 加入 trim() 去除前後空白，解決比對失敗問題
  * 
@@ -51,8 +52,16 @@ function doPost(e) {
             return sendResponse({ success: true, message: "Deleted successfully", deleted: result, targetId: data.id });
         }
 
+        // 客戶資料操作 (id 以 C 開頭，或有 name + contact)
+        if (data.id?.startsWith?.("C") || (data.name && data.contact)) {
+            if (data._delete) {
+                return deleteCustomer(data);
+            }
+            return saveCustomer(data);
+        }
+
         // 備註模板操作
-        if (data.action === "save_note_template" || data.id?.startsWith?.("n") || data.label) {
+        if (data.action === "save_note_template" || data.label) {
             if (data._delete) {
                 return deleteNoteTemplate(data);
             }
@@ -65,6 +74,88 @@ function doPost(e) {
     } finally {
         lock.releaseLock();
     }
+}
+
+// ─── 客戶資料相關函數 ───
+
+function saveCustomer(customer) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAMES.CUSTOMERS);
+
+    if (!sheet) {
+        return sendResponse({ success: false, error: "客戶資料工作表不存在" });
+    }
+
+    const id = String(customer.id || "").trim();
+    const name = String(customer.name || "").trim();
+    const contact = String(customer.contact || "").trim();
+    const phone = String(customer.phone || "").trim();
+    const email = String(customer.email || "").trim();
+    const address = String(customer.address || "").trim();
+    const taxId = String(customer.taxId || "").trim();
+    const notes = String(customer.notes || "").trim();
+    const createdAt = String(customer.createdAt || "").trim();
+
+    if (!id || !name) {
+        return sendResponse({ success: false, error: "Missing id or name" });
+    }
+
+    // 檢查是否已存在（用於更新）
+    const lastRow = sheet.getLastRow();
+    let existingRow = -1;
+
+    if (lastRow >= 3) {
+        const ids = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
+        for (let i = 0; i < ids.length; i++) {
+            if (String(ids[i][0]).trim() === id) {
+                existingRow = i + 3;
+                break;
+            }
+        }
+    }
+
+    const rowData = [id, name, contact, phone, email, address, taxId, notes, createdAt];
+
+    if (existingRow > 0) {
+        // 更新現有資料
+        sheet.getRange(existingRow, 1, 1, 9).setValues([rowData]);
+        return sendResponse({ success: true, message: "Customer updated", id: id });
+    } else {
+        // 新增資料
+        sheet.appendRow(rowData);
+        return sendResponse({ success: true, message: "Customer created", id: id });
+    }
+}
+
+function deleteCustomer(customer) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAMES.CUSTOMERS);
+
+    if (!sheet) {
+        return sendResponse({ success: true, message: "Sheet not found, nothing to delete" });
+    }
+
+    const targetId = String(customer.id || "").trim();
+    if (!targetId) {
+        return sendResponse({ success: false, error: "Missing id" });
+    }
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 3) {
+        return sendResponse({ success: true, message: "No data to delete" });
+    }
+
+    const ids = sheet.getRange(3, 1, lastRow - 2, 1).getValues();
+    let deleted = 0;
+
+    for (let i = ids.length - 1; i >= 0; i--) {
+        if (String(ids[i][0]).trim() === targetId) {
+            sheet.deleteRow(i + 3);
+            deleted++;
+        }
+    }
+
+    return sendResponse({ success: true, message: "Customer deleted", deleted: deleted });
 }
 
 // ─── 備註模板相關函數 ───
