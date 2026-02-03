@@ -1187,23 +1187,24 @@ export default function App() {
   const deleteQuote = async (id) => {
     if (!window.confirm("確定要刪除這張報價單嗎？此動作無法復原。")) return;
 
-    // 找出要刪除的報價單 (為了取得 quoteNumber)
+    // 找出要刪除的報價單 (為了拿到 quoteNumber)
     const quoteToDelete = quotes.find(q => q.id === id);
-    if (!quoteToDelete) return; // Should not happen in UI
 
     // Optimistic Update: 先從 UI 移除
     setQuotes(prev => prev.filter(q => q.id !== id));
 
     // Sync to Backend
-    setSyncing(true);
-    try {
-      // ⚠️ 重要：Google Sheets 第一欄是 "報價單號"，所以必須傳 quoteNumber 才能刪除成功
-      await api.deleteQuote(quoteToDelete.quoteNumber);
-    } catch (err) {
-      console.error("Failed to sync delete:", err);
-      // 如果失敗，可能需要提示用戶或還原（這邊先簡單處理，僅 log）
-    } finally {
-      setSyncing(false);
+    if (quoteToDelete) {
+      setSyncing(true);
+      try {
+        // 使用 quoteNumber 作為刪除 Key，因為 Sheets 是用報價單號當主鍵
+        // 傳送 quoteNumber 給後端，而非內部 id
+        await api.deleteQuote(quoteToDelete.quoteNumber);
+      } catch (err) {
+        console.error("Failed to sync delete:", err);
+      } finally {
+        setSyncing(false);
+      }
     }
   };
 
