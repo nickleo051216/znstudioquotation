@@ -6,7 +6,7 @@ import {
   Download, Printer, Phone, Mail, Globe, MessageCircle, ArrowLeft,
   TrendingUp, DollarSign, Clock, CheckCircle, XCircle, Filter, MoreVertical,
   Building2, Hash, MapPin, Calendar, CreditCard, Zap, ExternalLink,
-  Landmark, Milestone, BookOpen, ChevronUp, StickyNote
+  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle
 } from "lucide-react";
 
 // ─── Brand Config (Default) ───
@@ -78,7 +78,15 @@ const api = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, _delete: true }),
       });
-      return await res.json();
+
+      const text = await res.text();
+      try {
+        return text ? JSON.parse(text) : { success: true }; // 若回傳空字串視為成功
+      } catch (e) {
+        console.warn("Non-JSON response for delete:", text);
+        // 若回傳非 JSON 但 HTTP 200，視為成功但記錄警告
+        return res.ok ? { success: true, message: text } : { success: false, error: text };
+      }
     } catch (err) {
       console.error("Failed to delete quote:", err);
       return { success: false, error: err.message };
