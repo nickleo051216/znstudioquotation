@@ -464,8 +464,8 @@ const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQu
               <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">操作</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map(q => (
-                <tr key={q.id} className="hover:bg-gray-50/50 transition-colors">
+              {filtered.map((q, idx) => (
+                <tr key={q.id} className="hover:bg-gray-50/50 transition-colors relative" style={{ zIndex: filtered.length - idx }}>
                   <td className="px-5 py-3.5"><span className="text-sm font-mono font-semibold text-emerald-600">{q.quoteNumber}</span></td>
                   <td className="px-5 py-3.5"><div className="text-sm font-medium text-gray-900">{q.clientName}</div><div className="text-xs text-gray-400">{q.projectName}</div></td>
                   <td className="px-5 py-3.5"><span className="text-sm font-bold text-gray-900">${fmt(calcTotal(q.items, q.taxRate))}</span></td>
@@ -1239,12 +1239,17 @@ export default function App() {
         const res = await api.deleteQuote(quoteToDelete.quoteNumber);
 
         // 檢查回傳結果 (GAS 通常回傳 array 或 object)
-        // 假設 api.deleteQuote 已經處理好 res 格式
-        if (res && (res.success || (Array.isArray(res) && res[0]?.success))) {
+        // 嚴格檢查：必須要是 success 且真的有刪除 quote (deleted.quote > 0)
+        // 支援回傳單一物件或陣列
+        const result = Array.isArray(res) ? res[0] : res;
+
+        if (result && result.success && result.deleted && result.deleted.quote > 0) {
           showToast("🗑️ 刪除同步成功！");
         } else {
           console.warn("Delete response:", res);
-          showToast("⚠️ 本地已刪除，但後端同步狀況不明", "error");
+          // 若回傳 success: true 但 deleted.quote 為 0，代表可能沒找到 ID
+          const msg = result?.message || "未找到對應單號或同步失敗";
+          showToast(`⚠️ 同步失敗：${msg}`, "error");
         }
       } catch (err) {
         console.error("Failed to sync delete:", err);
