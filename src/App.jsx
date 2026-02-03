@@ -1083,12 +1083,12 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
         </div>
       </div>
 
-      {/* Contact */}
+      {/* Contact - 顯示目前設定的公司資訊 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><MessageCircle size={16} className="text-emerald-600" /> 聯絡資訊</h2>
+        <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><MessageCircle size={16} className="text-emerald-600" /> 目前聯絡資訊（唯讀）</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2"><p><span className="text-gray-500">負責人：</span><span className="font-semibold">{BRAND.owner}</span></p><p><span className="text-gray-500">Email：</span>{BRAND.email}</p><p><span className="text-gray-500">電話：</span>{BRAND.phone}</p></div>
-          <div className="space-y-2"><p><span className="text-gray-500">網站：</span><a href={BRAND.website} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{BRAND.website}</a></p><p><span className="text-gray-500">Threads：</span><a href={BRAND.threads} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{BRAND.threadsHandle}</a></p><p><span className="text-gray-500">LINE 社群：</span><a href={BRAND.lineGroup} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">加入社群</a></p></div>
+          <div className="space-y-2"><p><span className="text-gray-500">負責人：</span><span className="font-semibold">{brand.owner}</span></p><p><span className="text-gray-500">Email：</span>{brand.email}</p><p><span className="text-gray-500">電話：</span>{brand.phone}</p></div>
+          <div className="space-y-2"><p><span className="text-gray-500">網站：</span><a href={brand.website} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{brand.website}</a></p><p><span className="text-gray-500">Threads：</span><a href={brand.threads} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{brand.threadsHandle}</a></p><p><span className="text-gray-500">LINE 社群：</span><a href={brand.lineGroup} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">加入社群</a></p></div>
         </div>
       </div>
     </div>
