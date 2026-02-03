@@ -1180,6 +1180,9 @@ export default function App() {
       status: "draft",
       createdAt: today(),
       history: undefined, // 不複製版本歷史
+      // 複製項目內容但給予新的 ID，確保完全獨立
+      items: quote.items.map(item => ({ ...item, id: genId() })),
+      milestones: quote.milestones.map(ms => ({ ...ms, id: genId() })),
     };
     setEditingQuote(newQuote);
     setPage("new-quote");
