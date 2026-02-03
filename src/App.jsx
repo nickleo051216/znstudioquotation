@@ -9,8 +9,8 @@ import {
   Landmark, Milestone, BookOpen, ChevronUp, StickyNote
 } from "lucide-react";
 
-// ─── Brand Config ───
-const BRAND = {
+// ─── Brand Config (Default) ───
+const DEFAULT_BRAND = {
   name: "ZN Studio",
   owner: "Nick Chang",
   email: "nickleo051216@gmail.com",
@@ -23,6 +23,16 @@ const BRAND = {
   lineOA: "https://lin.ee/Faz0doj",
   prefix: "ZN",
 };
+
+// ─── Default Services Library ───
+const DEFAULT_SERVICES = [
+  { id: "s1", name: "系統架構設計", desc: "含需求分析、流程設計、技術規劃", unit: "式", price: 15000 },
+  { id: "s2", name: "n8n 自動化流程開發", desc: "LINE Webhook、AI Agent、訂單管理流程", unit: "式", price: 25000 },
+  { id: "s3", name: "AI 知識庫訓練", desc: "Prompt Engineering、資料庫、防幻覺機制", unit: "式", price: 15000 },
+  { id: "s4", name: "教育訓練", desc: "線上或實體教育訓練", unit: "小時", price: 2500 },
+  { id: "s5", name: "LINE OA 智慧客服", desc: "LINE Official Account 自動回覆設定", unit: "式", price: 20000 },
+  { id: "s6", name: "報表自動化", desc: "Google Sheets 報表自動產生、通知", unit: "式", price: 12000 },
+];
 
 // ─── API Config ───
 const API_BASE = "https://nickleo9.zeabur.app/webhook";
@@ -224,11 +234,11 @@ const calcTotal = (items, rate) => { const s = calcSubtotal(items); return s + c
 const genId = () => Math.random().toString(36).slice(2, 10);
 const today = () => new Date().toISOString().split("T")[0];
 
-const genQuoteNumber = (quotes) => {
+const genQuoteNumber = (quotes, prefix = "ZN") => {
   const year = new Date().getFullYear();
   const existing = quotes.filter(q => q.quoteNumber.includes(`${year}`));
   const num = String(existing.length + 1).padStart(3, "0");
-  return `${BRAND.prefix}-${year}-${num}`;
+  return `${prefix}-${year}-${num}`;
 };
 
 // ─── Shared Components ───
@@ -301,7 +311,7 @@ const EmptyState = ({ icon: Icon, title, desc, action, onAction }) => (
 );
 
 // ─── Sidebar ───
-const Sidebar = ({ page, setPage, quoteCount }) => {
+const Sidebar = ({ page, setPage, quoteCount, brand }) => {
   const nav = [
     { id: "dashboard", icon: LayoutDashboard, label: "儀表板" },
     { id: "quotes", icon: FileText, label: "報價單", badge: quoteCount },
@@ -335,8 +345,8 @@ const Sidebar = ({ page, setPage, quoteCount }) => {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center text-emerald-400 text-xs font-bold">NC</div>
           <div className="flex-1 min-w-0">
-            <div className="text-white text-xs font-medium truncate">{BRAND.owner}</div>
-            <div className="text-gray-500 text-xs truncate">{BRAND.email}</div>
+            <div className="text-white text-xs font-medium truncate">{brand.owner}</div>
+            <div className="text-gray-500 text-xs truncate">{brand.email}</div>
           </div>
         </div>
       </div>
@@ -345,7 +355,7 @@ const Sidebar = ({ page, setPage, quoteCount }) => {
 };
 
 // ─── Dashboard ───
-const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote }) => {
+const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote, brand }) => {
   const totalRevenue = quotes.filter(q => q.status === "accepted").reduce((s, q) => s + calcTotal(q.items, q.taxRate), 0);
   const pendingRevenue = quotes.filter(q => q.status === "sent").reduce((s, q) => s + calcTotal(q.items, q.taxRate), 0);
   const statusData = Object.entries(STATUS_CONFIG).map(([k, v]) => ({ name: v.label, value: quotes.filter(q => q.status === k).length })).filter(d => d.value > 0);
@@ -358,7 +368,7 @@ const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote }) => {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
-        <div><h1 className="text-2xl font-bold text-gray-900">儀表板</h1><p className="text-sm text-gray-500 mt-1">歡迎回來，{BRAND.owner}</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">儀表板</h1><p className="text-sm text-gray-500 mt-1">歡迎回來，{brand.owner}</p></div>
         <button onClick={() => { setEditingQuote(null); setPage("new-quote"); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-lg" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}><Plus size={16} /> 新增報價單</button>
       </div>
       <div className="grid grid-cols-4 gap-5 mb-8">
@@ -399,7 +409,7 @@ const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote }) => {
 };
 
 // ─── Quote List ───
-const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQuote, updateQuoteStatus }) => {
+const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQuote, updateQuoteStatus, duplicateQuote }) => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const filtered = quotes.filter(q => {
@@ -443,6 +453,7 @@ const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQu
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => { setPreviewQuote(q); setPage("preview"); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-emerald-600" title="預覽"><Eye size={15} /></button>
                       <button onClick={() => { setEditingQuote(q); setPage("new-quote"); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600" title="編輯"><Edit3 size={15} /></button>
+                      <button onClick={() => duplicateQuote(q)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-amber-600" title="複製"><Copy size={15} /></button>
                       <button onClick={() => deleteQuote(q.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500" title="刪除"><Trash2 size={15} /></button>
                     </div>
                   </td>
@@ -473,9 +484,9 @@ const NotesTemplatePicker = ({ notesTemplates, onSelect, onClose }) => (
 );
 
 // ─── Quote Form ───
-const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSave, onCancel }) => {
+const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSave, onCancel, services, brand }) => {
   const [form, setForm] = useState(() => editing || {
-    id: genId(), quoteNumber: genQuoteNumber(quotes), customerId: "", clientName: "", clientContact: "",
+    id: genId(), quoteNumber: genQuoteNumber(quotes, brand?.prefix || "ZN"), customerId: "", clientName: "", clientContact: "",
     clientPhone: "", clientEmail: "", clientAddress: "", projectName: "", projectType: PROJECT_TYPES[0],
     items: [{ id: genId(), name: "", desc: "", qty: 1, unit: "式", price: 0 }],
     milestones: [],
@@ -484,6 +495,7 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
     bankInfo: { ...bankInfo },
   });
   const [showNotesPicker, setShowNotesPicker] = useState(false);
+  const [showServicePicker, setShowServicePicker] = useState(false);
 
   const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const setBankField = (k, v) => setForm(prev => ({ ...prev, bankInfo: { ...prev.bankInfo, [k]: v } }));
@@ -496,6 +508,10 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
   const updateItem = (idx, k, v) => { const items = [...form.items]; items[idx] = { ...items[idx], [k]: v }; setForm(prev => ({ ...prev, items })); };
   const addItem = () => setForm(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: "", desc: "", qty: 1, unit: "式", price: 0 }] }));
   const removeItem = (idx) => setForm(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
+  const addServiceAsItem = (svc) => {
+    setForm(prev => ({ ...prev, items: [...prev.items, { id: genId(), name: svc.name, desc: svc.desc, qty: 1, unit: svc.unit, price: svc.price }] }));
+    setShowServicePicker(false);
+  };
 
   const updateMilestone = (idx, k, v) => { const ms = [...form.milestones]; ms[idx] = { ...ms[idx], [k]: v }; setForm(prev => ({ ...prev, milestones: ms })); };
   const addMilestone = () => setForm(prev => ({ ...prev, milestones: [...prev.milestones, { id: genId(), week: `Week ${prev.milestones.length + 1}`, title: "", tasks: "" }] }));
@@ -549,7 +565,12 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><FileText size={16} className="text-emerald-600" /> 報價項目</h2>
-          <button onClick={addItem} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-semibold hover:bg-emerald-100"><Plus size={14} /> 新增項目</button>
+          <div className="flex items-center gap-2">
+            {services && services.length > 0 && (
+              <button onClick={() => setShowServicePicker(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100"><FileText size={14} /> 從服務選擇</button>
+            )}
+            <button onClick={addItem} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-semibold hover:bg-emerald-100"><Plus size={14} /> 新增項目</button>
+          </div>
         </div>
         <div className="space-y-3">
           {form.items.map((item, idx) => (
@@ -624,12 +645,49 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
         <button onClick={() => handleSave(true)} className="px-5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">儲存草稿</button>
         <button onClick={() => handleSave(false)} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}>{editing ? "儲存變更" : "建立並寄出"}</button>
       </div>
+
+      {/* Service Picker Modal */}
+      {showServicePicker && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowServicePicker(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-[500px] max-h-[70vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-900">選擇服務項目</h3>
+              <button onClick={() => setShowServicePicker(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600"><X size={18} /></button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[50vh]">
+              {services && services.length > 0 ? (
+                <div className="space-y-2">
+                  {services.map(svc => (
+                    <button key={svc.id} onClick={() => addServiceAsItem(svc)} className="w-full text-left p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-gray-800">{svc.name}</div>
+                          <div className="text-xs text-gray-400 mt-0.5 truncate">{svc.desc}</div>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-3">
+                          <div className="text-sm font-bold text-emerald-600">${fmt(svc.price)}</div>
+                          <div className="text-xs text-gray-400">/{svc.unit}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-sm text-gray-400">尚無服務項目，請先在設定頁面新增</div>
+              )}
+            </div>
+            <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
+              點擊服務項目可直接加入報價單
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // ─── Quote Preview ───
-const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
+const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
   if (!quote) return null;
   const subtotal = calcSubtotal(quote.items);
   const tax = calcTax(subtotal, quote.taxRate);
@@ -654,7 +712,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
         <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
-            <span className="text-white font-bold text-sm">{BRAND.name}</span>
+            <span className="text-white font-bold text-sm">{brand.name}</span>
           </div>
           <div className="flex items-center gap-4 text-white text-xs">
             <span>報價單號：<strong className="font-mono">{quote.quoteNumber}</strong></span>
@@ -668,7 +726,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg bg-white/20 text-white backdrop-blur-sm">ZN</div>
-              <div><h1 className="text-white text-xl font-bold">{BRAND.name}</h1><p className="text-emerald-200 text-xs">AI Automation Consulting</p></div>
+              <div><h1 className="text-white text-xl font-bold">{brand.name}</h1><p className="text-emerald-200 text-xs">AI Automation Consulting</p></div>
             </div>
             <div className="text-right"><h2 className="text-white text-2xl font-bold tracking-wide mb-1">報 價 單</h2><p className="text-emerald-200 text-xs">QUOTATION</p></div>
           </div>
@@ -787,10 +845,10 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
             <div className="grid grid-cols-2 gap-8">
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">提案單位</h4>
-                <p className="text-sm font-bold text-gray-900">{BRAND.owner} | {BRAND.name}</p>
+                <p className="text-sm font-bold text-gray-900">{brand.owner} | {brand.name}</p>
                 <div className="mt-2 space-y-1 text-xs text-gray-500">
-                  <p>📧 {BRAND.email}</p><p>📱 {BRAND.phone}</p><p>🌐 {BRAND.website}</p>
-                  <p className="print:hidden">💬 Threads: {BRAND.threadsHandle}</p><p className="print:hidden">👥 LINE 社群: {BRAND.lineGroup}</p><p className="print:hidden">💼 LINE: {BRAND.lineOA}</p>
+                  <p>📧 {brand.email}</p><p>📱 {brand.phone}</p><p>🌐 {brand.website}</p>
+                  <p className="print:hidden">💬 Threads: {brand.threadsHandle}</p><p className="print:hidden">👥 LINE 社群: {brand.lineGroup}</p><p className="print:hidden">💼 LINE: {brand.lineOA}</p>
                 </div>
               </div>
               <div><h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶簽章</h4><div className="border-b-2 border-gray-300 mt-16 mb-2" /><p className="text-xs text-gray-400">簽名 / 日期</p></div>
@@ -800,8 +858,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
         {/* ═══════════ Print Footer Bar (only visible when printing) ═══════════ */}
         <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
-          <a href={BRAND.website} className="text-emerald-700 font-semibold">{BRAND.websiteDisplay}</a>
-          <span>{BRAND.name}</span>
+          <a href={brand.website} className="text-emerald-700 font-semibold">{brand.websiteDisplay}</a>
+          <span>{brand.name}</span>
           <span className="font-mono font-semibold">{quote.quoteNumber}</span>
         </div>
       </div>
@@ -884,15 +942,65 @@ const CustomerForm = ({ customer, onSave, onCancel }) => {
 };
 
 // ─── Settings ───
-const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates }) => {
+const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates, brand, setBrand, services, setServices }) => {
   const [newNote, setNewNote] = useState({ label: "", text: "" });
+  const [newService, setNewService] = useState({ name: "", desc: "", unit: "式", price: 0 });
   const addNoteTemplate = () => { if (newNote.label && newNote.text) { setNotesTemplates(prev => [...prev, { id: genId(), ...newNote }]); setNewNote({ label: "", text: "" }); } };
+  const addService = () => { if (newService.name && newService.price > 0) { setServices(prev => [...prev, { id: genId(), ...newService }]); setNewService({ name: "", desc: "", unit: "式", price: 0 }); } };
+  const removeService = (id) => setServices(prev => prev.filter(s => s.id !== id));
   const inputClsN = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
 
   return (
     <div className="p-8 max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
-      <p className="text-sm text-gray-500 mb-8">管理匯款資訊、備註模板與 n8n Webhook 連接</p>
+      <p className="text-sm text-gray-500 mb-8">管理公司資訊、服務資料庫、匯款資訊與備註模板</p>
+
+      {/* Company Info */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Building2 size={16} className="text-emerald-600" /> 公司資訊</h2>
+        <p className="text-xs text-gray-400 mb-5">此資訊將顯示在報價單和列印輸出中</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">公司名稱</label><input value={brand.name} onChange={e => setBrand(p => ({ ...p, name: e.target.value }))} className={inputClsN} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">負責人</label><input value={brand.owner} onChange={e => setBrand(p => ({ ...p, owner: e.target.value }))} className={inputClsN} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Email</label><input type="email" value={brand.email} onChange={e => setBrand(p => ({ ...p, email: e.target.value }))} className={inputClsN} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">電話</label><input value={brand.phone} onChange={e => setBrand(p => ({ ...p, phone: e.target.value }))} className={inputClsN} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">網站</label><input value={brand.website} onChange={e => setBrand(p => ({ ...p, website: e.target.value }))} className={inputClsN} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">報價單號前綴</label><input value={brand.prefix} onChange={e => setBrand(p => ({ ...p, prefix: e.target.value }))} className={inputClsN} maxLength={4} /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Threads</label><input value={brand.threadsHandle} onChange={e => setBrand(p => ({ ...p, threadsHandle: e.target.value }))} className={inputClsN} placeholder="@username" /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">LINE 官方帳號</label><input value={brand.lineOA} onChange={e => setBrand(p => ({ ...p, lineOA: e.target.value }))} className={inputClsN} placeholder="https://lin.ee/xxx" /></div>
+        </div>
+      </div>
+
+      {/* Services Library */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><FileText size={16} className="text-emerald-600" /> 服務/產品資料庫</h2>
+        <p className="text-xs text-gray-400 mb-5">預設的常用服務項目，建立報價單時可快速選用</p>
+        <div className="space-y-2 mb-5 max-h-60 overflow-y-auto">
+          {services.map(s => (
+            <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-800">{s.name}</div>
+                <div className="text-xs text-gray-400 truncate">{s.desc}</div>
+              </div>
+              <div className="text-xs text-gray-500">{s.unit}</div>
+              <div className="text-sm font-semibold text-emerald-700">${fmt(s.price)}</div>
+              <button onClick={() => removeService(s.id)} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={14} /></button>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-gray-100 pt-4">
+          <h4 className="text-xs font-semibold text-gray-600 mb-2">新增服務項目</h4>
+          <div className="grid grid-cols-12 gap-2">
+            <input value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} placeholder="服務名稱" className={`${inputClsN} col-span-3`} />
+            <input value={newService.desc} onChange={e => setNewService(p => ({ ...p, desc: e.target.value }))} placeholder="說明" className={`${inputClsN} col-span-4`} />
+            <select value={newService.unit} onChange={e => setNewService(p => ({ ...p, unit: e.target.value }))} className={`${inputClsN} col-span-2`}>
+              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+            <input type="number" value={newService.price || ""} onChange={e => setNewService(p => ({ ...p, price: Number(e.target.value) || 0 }))} placeholder="單價" className={`${inputClsN} col-span-2 text-right`} />
+            <button onClick={addService} disabled={!newService.name || newService.price <= 0} className="col-span-1 px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40"><Plus size={14} /></button>
+          </div>
+        </div>
+      </div>
 
       {/* Bank */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -968,14 +1076,10 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
         <div className="space-y-4 text-sm">
           {[
             { t: "📋 Sheet 1：客戶資料", s: "客戶編號 | 公司名稱 | 聯絡人 | 電話 | Email | 地址 | 統編 | 備註 | 建立日期" },
-            { t: "📋 Sheet 2：報價單", s: "報價單號 | 客戶編號 | 專案名稱 | 專案類型 | 稅率 | 狀態 | 建立日期 | 有效期限 | 付款條件 | 備註" },
-            { t: "📋 Sheet 3：報價項目", s: "報價單號 | 項目名稱 | 說明 | 數量 | 單位 | 單價" },
-            { t: "📋 Sheet 4：期程里程碑", s: "報價單號 | 週次 | 標題 | 工作項目" },
-            { t: "📋 Sheet 5：備註模板", s: "模板ID | 模板名稱 | 備註內容" },
-            { t: "📋 Sheet 6：匯款資訊", s: "銀行名稱 | 銀行代碼 | 分行名稱 | 戶名 | 帳號" },
-          ].map((s, i) => (
-            <div key={i} className="p-4 rounded-xl bg-gray-50 border border-gray-100"><h4 className="font-bold text-gray-800 mb-2">{s.t}</h4><code className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded">{s.s}</code></div>
-          ))}
+            { t: "📝 Sheet 2：報價單", s: "報價單號 | 客戶編號 | 專案名稱 | 專案類型 | 狀態 | 報價日期 | 有效期限 | 稅率 | 付款條件 | 備註 | 建立日期 | 更新日期" },
+            { t: "📦 Sheet 3：報價項目", s: "報價單號 | 項目名稱 | 說明 | 數量 | 單位 | 單價 | 小計" },
+            { t: "🎯 Sheet 4：期程里程碑", s: "報價單號 | 週次 | 標題 | 工作項目" },
+          ].map(({ t, s }) => <div key={t}><h4 className="font-semibold text-gray-800 mb-1">{t}</h4><p className="text-xs text-gray-400 font-mono">{s}</p></div>)}
         </div>
       </div>
 
@@ -1002,6 +1106,28 @@ export default function App() {
   const [notesTemplates, setNotesTemplates] = useState(DEFAULT_NOTES_TEMPLATES);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+
+  // 公司資訊 (可編輯，儲存到 localStorage)
+  const [brand, setBrand] = useState(() => {
+    const saved = localStorage.getItem("zn_brand");
+    return saved ? JSON.parse(saved) : { ...DEFAULT_BRAND };
+  });
+
+  // 服務資料庫 (可編輯，儲存到 localStorage)
+  const [services, setServices] = useState(() => {
+    const saved = localStorage.getItem("zn_services");
+    return saved ? JSON.parse(saved) : [...DEFAULT_SERVICES];
+  });
+
+  // 持久化 brand 到 localStorage
+  useEffect(() => {
+    localStorage.setItem("zn_brand", JSON.stringify(brand));
+  }, [brand]);
+
+  // 持久化 services 到 localStorage
+  useEffect(() => {
+    localStorage.setItem("zn_services", JSON.stringify(services));
+  }, [services]);
 
   // 初始載入資料
   useEffect(() => {
@@ -1046,6 +1172,19 @@ export default function App() {
 
   const deleteQuote = (id) => setQuotes(prev => prev.filter(q => q.id !== id));
 
+  const duplicateQuote = (quote) => {
+    const newQuote = {
+      ...quote,
+      id: genId(),
+      quoteNumber: genQuoteNumber(quotes, brand.prefix),
+      status: "draft",
+      createdAt: today(),
+      history: undefined, // 不複製版本歷史
+    };
+    setEditingQuote(newQuote);
+    setPage("new-quote");
+  };
+
   const updateQuoteStatus = async (id, newStatus) => {
     setQuotes(prev => prev.map(q => q.id === id ? { ...q, status: newStatus } : q));
     if (previewQuote && previewQuote.id === id) setPreviewQuote(prev => ({ ...prev, status: newStatus }));
@@ -1076,13 +1215,13 @@ export default function App() {
 
   const renderPage = () => {
     switch (page) {
-      case "dashboard": return <Dashboard quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} />;
-      case "quotes": return <QuoteList quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} deleteQuote={deleteQuote} updateQuoteStatus={updateQuoteStatus} />;
-      case "new-quote": return <QuoteForm editing={editingQuote} customers={customers} quotes={quotes} notesTemplates={notesTemplates} bankInfo={bankInfo} onSave={saveQuote} onCancel={() => setPage("quotes")} />;
-      case "preview": return <QuotePreview quote={previewQuote} onBack={() => setPage("quotes")} updateQuoteStatus={updateQuoteStatus} />;
+      case "dashboard": return <Dashboard quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} brand={brand} />;
+      case "quotes": return <QuoteList quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} deleteQuote={deleteQuote} updateQuoteStatus={updateQuoteStatus} duplicateQuote={duplicateQuote} />;
+      case "new-quote": return <QuoteForm editing={editingQuote} customers={customers} quotes={quotes} notesTemplates={notesTemplates} bankInfo={bankInfo} onSave={saveQuote} onCancel={() => setPage("quotes")} services={services} brand={brand} />;
+      case "preview": return <QuotePreview quote={previewQuote} onBack={() => setPage("quotes")} updateQuoteStatus={updateQuoteStatus} brand={brand} />;
       case "customers": return <CustomerList customers={customers} setCustomers={setCustomers} />;
-      case "settings": return <SettingsPage bankInfo={bankInfo} setBankInfo={setBankInfo} notesTemplates={notesTemplates} setNotesTemplates={setNotesTemplates} />;
-      default: return <Dashboard quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} />;
+      case "settings": return <SettingsPage bankInfo={bankInfo} setBankInfo={setBankInfo} notesTemplates={notesTemplates} setNotesTemplates={setNotesTemplates} brand={brand} setBrand={setBrand} services={services} setServices={setServices} />;
+      default: return <Dashboard quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} brand={brand} />;
     }
   };
 
@@ -1104,7 +1243,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:overflow-visible print:bg-white" style={{ fontFamily: "'Noto Sans TC', -apple-system, sans-serif" }}>
-      <Sidebar page={page} setPage={setPage} quoteCount={quotes.length} />
+      <Sidebar page={page} setPage={setPage} quoteCount={quotes.length} brand={brand} />
       <main className="flex-1 overflow-y-auto relative print:overflow-visible print:w-full">
         {renderPage()}
         {/* Syncing 指示器 */}
