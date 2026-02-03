@@ -14,19 +14,125 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Print styles */
+/* ─── Z-index fixes for dropdowns ─── */
+.dropdown-overlay {
+  z-index: 9999 !important;
+}
+
+/* Ensure table cells allow overflow for dropdowns */
+table {
+  overflow: visible !important;
+}
+
+td,
+th {
+  overflow: visible !important;
+}
+
+/* ─── Print styles - Complete overhaul ─── */
 @media print {
-  body {
+
+  /* Preserve colors */
+  * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  
-  .no-print {
+
+  /* Hide everything except printable content */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide sidebar and navigation */
+  aside,
+  nav,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: flex !important;
+  }
+
+  /* Main content area - take full width */
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Quote container styling - use normal flow instead of absolute */
+  #printable-quote {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Ensure all content is visible */
+  #printable-quote * {
+    overflow: visible !important;
+  }
+
+  /* Remove shadows for print */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  /* Remove rounded corners for print */
+  .rounded-2xl,
+  .rounded-xl {
+    border-radius: 0 !important;
+  }
+
+  /* Ensure proper page breaks */
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+}
+
+/* ─── Screen-only styles (hide on print) ─── */
+@media screen {
+  .print-only {
     display: none !important;
   }
 }
 
-/* Custom scrollbar */
+/* ─── Responsive design helpers ─── */
+@media (max-width: 1024px) {
+  .sidebar-mobile-hidden {
+    display: none !important;
+  }
+
+  .sidebar-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ─── Custom scrollbar ─── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -45,12 +151,35 @@ body {
   background: #94a3b8;
 }
 
-/* Animation delays for loading dots */
+/* ─── Animation: bounce for loading dots ─── */
 @keyframes bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-6px);
   }
+}
+
+/* ─── Smooth transitions ─── */
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
+}
+
+/* ─── Mobile menu animation ─── */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-slide-in {
+  animation: slideIn 0.3s ease-out;
 }

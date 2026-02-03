@@ -15,7 +15,8 @@ const BRAND = {
   owner: "Nick Chang",
   email: "nickleo051216@gmail.com",
   phone: "0932-684-051",
-  website: "https://portaly.cc/zn.studio",
+  website: "https://znstudio216.com/",
+  websiteDisplay: "znstudio216.com",
   threads: "https://www.threads.com/@nickai216",
   threadsHandle: "@nickai216",
   lineGroup: "https://reurl.cc/1OZNAY",
@@ -245,16 +246,16 @@ const StatusBadge = ({ status }) => {
 const StatusDropdown = ({ currentStatus, onChange }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
+    <div className="relative" style={{ zIndex: open ? 9999 : 'auto' }}>
       <button onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="flex items-center gap-1.5 group">
+        className="flex items-center gap-1.5 group no-print">
         <StatusBadge status={currentStatus} />
         <ChevronDown size={12} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-xl border border-gray-200 py-1 min-w-[140px]">
+          <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-200 py-1 min-w-[140px]" style={{ zIndex: 9999 }}>
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
               <button key={key}
                 onClick={(e) => { e.stopPropagation(); onChange(key); setOpen(false); }}
@@ -308,7 +309,7 @@ const Sidebar = ({ page, setPage, quoteCount }) => {
     { id: "settings", icon: Settings, label: "系統設定" },
   ];
   return (
-    <aside className="w-64 min-h-screen flex flex-col" style={{ background: "linear-gradient(180deg, #0c1222 0%, #162032 100%)" }}>
+    <aside className="w-64 min-h-screen flex flex-col print:hidden" style={{ background: "linear-gradient(180deg, #0c1222 0%, #162032 100%)" }}>
       <div className="px-5 py-6 border-b border-white/5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base" style={{ background: "linear-gradient(135deg, #059669, #34d399)", color: "#fff" }}>ZN</div>
@@ -554,7 +555,7 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
           {form.items.map((item, idx) => (
             <div key={item.id} className="grid grid-cols-12 gap-2 items-start p-3 rounded-xl bg-gray-50/70 border border-gray-100">
               <div className="col-span-3"><label className="text-xs text-gray-400 mb-1 block">項目名稱</label><input value={item.name} onChange={e => updateItem(idx, "name", e.target.value)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-              <div className="col-span-3"><label className="text-xs text-gray-400 mb-1 block">說明</label><input value={item.desc} onChange={e => updateItem(idx, "desc", e.target.value)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+              <div className="col-span-3"><label className="text-xs text-gray-400 mb-1 block">規格描述/備註</label><textarea value={item.desc} onChange={e => updateItem(idx, "desc", e.target.value)} rows={2} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 resize-y min-h-[38px]" placeholder="可輸入多行說明..." /></div>
               <div className="col-span-1"><label className="text-xs text-gray-400 mb-1 block">數量</label><input type="number" min="1" value={item.qty} onChange={e => updateItem(idx, "qty", Number(e.target.value) || 1)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
               <div className="col-span-1"><label className="text-xs text-gray-400 mb-1 block">單位</label><select value={item.unit} onChange={e => updateItem(idx, "unit", e.target.value)} className="w-full px-1 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400">{UNITS.map(u => <option key={u} value={u}>{u}</option>)}</select></div>
               <div className="col-span-2"><label className="text-xs text-gray-400 mb-1 block">單價</label><input type="number" min="0" value={item.price} onChange={e => updateItem(idx, "price", Number(e.target.value) || 0)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-right focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
@@ -637,7 +638,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-5">
+      {/* Controls - hidden when printing */}
+      <div className="flex items-center justify-between mb-5 print:hidden">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"><ArrowLeft size={16} /> 返回列表</button>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border"><span className="text-xs text-gray-500">狀態：</span><StatusDropdown currentStatus={quote.status} onChange={(s) => updateQuoteStatus(quote.id, s)} /></div>
@@ -645,7 +647,23 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
+      {/* Printable Quote Container */}
+      <div id="printable-quote" className="quote-container bg-white rounded-2xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
+
+        {/* ═══════════ Print Header Bar (only visible when printing) ═══════════ */}
+        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
+            <span className="text-white font-bold text-sm">{BRAND.name}</span>
+          </div>
+          <div className="flex items-center gap-4 text-white text-xs">
+            <span>報價單號：<strong className="font-mono">{quote.quoteNumber}</strong></span>
+            <span>{quote.createdAt}</span>
+            <span className="px-2 py-1 bg-white/20 rounded font-bold">NT$ {fmt(total)}</span>
+          </div>
+        </div>
+
+        {/* Main Header */}
         <div className="p-8 pb-6" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 mb-2">
@@ -673,12 +691,13 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
                 <div><span className="text-gray-500">專案名稱：</span><span className="font-semibold text-gray-900">{quote.projectName}</span></div>
                 <div><span className="text-gray-500">報價日期：</span><span>{quote.createdAt}</span></div>
                 {quote.validUntil && <div><span className="text-gray-500">有效期限：</span><span>{quote.validUntil}</span></div>}
-                <div className="mt-2"><StatusBadge status={quote.status} /></div>
+                {/* Status Badge - hidden when printing */}
+                <div className="mt-2 print:hidden"><StatusBadge status={quote.status} /></div>
               </div>
             </div>
           </div>
 
-          <table className="w-full mb-6" style={{ borderCollapse: "collapse" }}>
+          <table className="w-full mb-6 avoid-break" style={{ borderCollapse: "collapse" }}>
             <thead><tr style={{ background: "#f0fdf4" }}>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "5%" }}>#</th>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "28%" }}>項目名稱</th>
@@ -713,7 +732,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
           {/* Milestones */}
           {quote.milestones && quote.milestones.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-8 avoid-break">
               <h3 className="flex items-center gap-2 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4"><Calendar size={14} /> 專案期程 Project Timeline</h3>
               <div className="relative">
                 <div className="absolute left-[39px] top-2 bottom-2 w-0.5 bg-emerald-200 rounded-full" />
@@ -735,7 +754,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
           {/* Payment */}
           {quote.paymentTerms && (
-            <div className="rounded-xl p-4 mb-4" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+            <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
               <div className="flex items-center gap-2 mb-1"><CreditCard size={14} className="text-emerald-600" /><span className="text-xs font-bold text-emerald-800">付款條件 Payment Terms</span></div>
               <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
             </div>
@@ -743,7 +762,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
           {/* Bank */}
           {bank.bankName && (
-            <div className="rounded-xl p-4 mb-4" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
+            <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
               <div className="flex items-center gap-2 mb-2"><Landmark size={14} className="text-blue-600" /><span className="text-xs font-bold text-blue-800">匯款資訊 Bank Transfer Info</span></div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
                 <div><span className="text-blue-500">銀行名稱：</span><span className="font-semibold text-blue-900">{bank.bankName}</span></div>
@@ -757,13 +776,13 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
 
           {/* Notes */}
           {quote.notes && (
-            <div className="rounded-xl p-4 mb-6" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+            <div className="rounded-xl p-4 mb-6 avoid-break" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
               <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
               <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
             </div>
           )}
 
-          {/* Footer */}
+          {/* Footer - Signature Section */}
           <div className="border-t border-gray-200 pt-6 mt-8">
             <div className="grid grid-cols-2 gap-8">
               <div>
@@ -771,12 +790,19 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus }) => {
                 <p className="text-sm font-bold text-gray-900">{BRAND.owner} | {BRAND.name}</p>
                 <div className="mt-2 space-y-1 text-xs text-gray-500">
                   <p>📧 {BRAND.email}</p><p>📱 {BRAND.phone}</p><p>🌐 {BRAND.website}</p>
-                  <p>💬 Threads: {BRAND.threadsHandle}</p><p>👥 LINE 社群: {BRAND.lineGroup}</p><p>💼 LINE: {BRAND.lineOA}</p>
+                  <p className="print:hidden">💬 Threads: {BRAND.threadsHandle}</p><p className="print:hidden">👥 LINE 社群: {BRAND.lineGroup}</p><p className="print:hidden">💼 LINE: {BRAND.lineOA}</p>
                 </div>
               </div>
               <div><h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶簽章</h4><div className="border-b-2 border-gray-300 mt-16 mb-2" /><p className="text-xs text-gray-400">簽名 / 日期</p></div>
             </div>
           </div>
+        </div>
+
+        {/* ═══════════ Print Footer Bar (only visible when printing) ═══════════ */}
+        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
+          <a href={BRAND.website} className="text-emerald-700 font-semibold">{BRAND.websiteDisplay}</a>
+          <span>{BRAND.name}</span>
+          <span className="font-mono font-semibold">{quote.quoteNumber}</span>
         </div>
       </div>
     </div>
@@ -896,9 +922,9 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
         <div className="border-t border-gray-100 pt-4">
           <h4 className="text-xs font-semibold text-gray-600 mb-2">新增備註模板</h4>
           <div className="flex gap-2 mb-2">
-            <input value={newNote.label} onChange={e => setNewNote(p => ({ ...p, label: e.target.value }))} placeholder="模板名稱" className={`${inputClsN} w-40`} />
-            <input value={newNote.text} onChange={e => setNewNote(p => ({ ...p, text: e.target.value }))} placeholder="備註內容" className={`${inputClsN} flex-1`} />
-            <button onClick={addNoteTemplate} disabled={!newNote.label || !newNote.text} className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex-shrink-0"><Plus size={14} /></button>
+            <input value={newNote.label} onChange={e => setNewNote(p => ({ ...p, label: e.target.value }))} placeholder="模板名稱" className={`${inputClsN} w-28 flex-shrink-0`} />
+            <textarea value={newNote.text} onChange={e => setNewNote(p => ({ ...p, text: e.target.value }))} placeholder="備註內容（可多行）" rows={2} className={`${inputClsN} flex-1 resize-y min-h-[40px]`} />
+            <button onClick={addNoteTemplate} disabled={!newNote.label || !newNote.text} className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex-shrink-0 self-start"><Plus size={14} /></button>
           </div>
         </div>
       </div>
@@ -1077,13 +1103,13 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'Noto Sans TC', -apple-system, sans-serif" }}>
+    <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:overflow-visible print:bg-white" style={{ fontFamily: "'Noto Sans TC', -apple-system, sans-serif" }}>
       <Sidebar page={page} setPage={setPage} quoteCount={quotes.length} />
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 overflow-y-auto relative print:overflow-visible print:w-full">
         {renderPage()}
         {/* Syncing 指示器 */}
         {syncing && (
-          <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-lg border border-gray-200 z-50">
+          <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-lg border border-gray-200 z-50 print:hidden">
             <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-gray-600">同步中...</span>
           </div>
