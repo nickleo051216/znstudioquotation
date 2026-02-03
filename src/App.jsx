@@ -1274,9 +1274,20 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
         <div className="border-t border-gray-100 pt-4">
           <h4 className="text-xs font-semibold text-gray-600 mb-2">新增備註模板</h4>
           <div className="flex gap-2 mb-2">
-            <input value={newNote.label} onChange={e => setNewNote(p => ({ ...p, label: e.target.value }))} placeholder="模板名稱" className={`${inputClsN} w-28 flex-shrink-0`} />
-            <textarea value={newNote.text} onChange={e => setNewNote(p => ({ ...p, text: e.target.value }))} placeholder="備註內容（可多行）" rows={2} className={`${inputClsN} flex-1 resize-y min-h-[40px]`} />
-            <button onClick={addNoteTemplate} disabled={!newNote.label || !newNote.text} className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex-shrink-0 self-start"><Plus size={14} /></button>
+            <input
+              value={newNote.label}
+              onChange={e => setNewNote(p => ({ ...p, label: e.target.value }))}
+              placeholder="模板名稱"
+              className="w-1/3 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+            />
+            <textarea
+              value={newNote.text}
+              onChange={e => setNewNote(p => ({ ...p, text: e.target.value }))}
+              placeholder="備註內容（可多行）"
+              rows={1}
+              className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 resize-none min-h-[42px]"
+            />
+            <button onClick={addNoteTemplate} disabled={!newNote.label || !newNote.text} className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 flex-shrink-0"><Plus size={16} /></button>
           </div>
         </div>
       </div>
