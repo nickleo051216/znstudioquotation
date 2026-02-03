@@ -8,6 +8,7 @@ import {
   Building2, Hash, MapPin, Calendar, CreditCard, Zap, ExternalLink,
   Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package
 } from "lucide-react";
+import DataMigration from "./components/DataMigration"; // Import Migration Tool
 
 // ─── Brand Config (Default) ───
 const DEFAULT_BRAND = {
@@ -34,28 +35,51 @@ const DEFAULT_SERVICES = [
   { id: "s6", name: "報表自動化", desc: "Google Sheets 報表自動產生、通知", unit: "式", price: 12000 },
 ];
 
-// ─── API Config ───
-const API_BASE = "https://nickleo9.zeabur.app/webhook";
-const WEBHOOKS = {
-  readQuotes: `${API_BASE}/read-quotes`,
-  writeQuote: `${API_BASE}/write-quote`,
-  readCustomers: `${API_BASE}/read-customers`,
-  writeCustomer: `${API_BASE}/write-customer`,
-  readServices: `${API_BASE}/read-services`,
-  writeService: `${API_BASE}/write-service`,
-  readNotesTemplates: `${API_BASE}/read-notes-templates`,
-  writeNoteTemplate: `${API_BASE}/write-note-template`,
-  sendEmail: `${API_BASE}/send-email`,
-  lookupTaxId: `${API_BASE}/lookup-taxid`,
+// ─── Firebase Imports ───
+import { db, initAuth } from './firebase';
+import {
+  collection, doc, getDocs, setDoc, deleteDoc, getDoc,
+  query, orderBy, serverTimestamp
+} from 'firebase/firestore';
+
+// ─── Firestore Collection Names ───
+const COLLECTIONS = {
+  QUOTES: 'quotations',
+  CUSTOMERS: 'customers',
+  SERVICES: 'services',
+  NOTES_TEMPLATES: 'notesTemplates',
 };
 
-// ─── API Functions ───
+// ─── Sync Webhooks (For Hybrid Sync) ───
+const SYNC_WEBHOOKS = {
+  writeQuote: "https://nickleo9.zeabur.app/webhook/write-quote",
+  writeCustomer: "https://nickleo9.zeabur.app/webhook/write-customer",
+  writeService: "https://nickleo9.zeabur.app/webhook/write-service",
+  writeNoteTemplate: "https://nickleo9.zeabur.app/webhook/write-note-template",
+};
+
+// ─── Sync Helper (Fire and Forget) ───
+const syncToSheets = async (url, data) => {
+  try {
+    // 非阻塞式呼叫 (Fire and Forget)
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).catch(err => console.warn("Background Sync Error (Ignored):", err));
+  } catch (e) {
+    console.warn("Sync Trigger Error:", e);
+  }
+};
+
+// ─── API Functions (Firebase Version) ───
 const api = {
+  // 報價單
   async fetchQuotes() {
     try {
-      const res = await fetch(WEBHOOKS.readQuotes);
-      const data = await res.json();
-      return data.success ? data.data : [];
+      const q = query(collection(db, COLLECTIONS.QUOTES), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (err) {
       console.error("Failed to fetch quotes:", err);
       return [];
@@ -63,12 +87,18 @@ const api = {
   },
   async saveQuote(quote) {
     try {
-      const res = await fetch(WEBHOOKS.writeQuote, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(quote),
+      const quoteId = quote.id || `ZN-${Date.now()}`;
+      const docRef = doc(db, COLLECTIONS.QUOTES, quoteId);
+      await setDoc(docRef, {
+        ...quote,
+        id: quoteId,
+        updatedAt: serverTimestamp(),
+        createdAt: quote.createdAt || serverTimestamp(),
       });
-      return await res.json();
+      // [Hybrid Sync] Background sync to Sheets
+      syncToSheets(SYNC_WEBHOOKS.writeQuote, { ...quote, id: quoteId });
+
+      return { success: true, id: quoteId };
     } catch (err) {
       console.error("Failed to save quote:", err);
       return { success: false, error: err.message };
@@ -76,31 +106,21 @@ const api = {
   },
   async deleteQuote(id) {
     try {
-      // 傳送帶有 _delete 標記的物件，讓 n8n 識別為刪除操作
-      const res = await fetch(WEBHOOKS.writeQuote, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, _delete: true }),
-      });
-
-      const text = await res.text();
-      try {
-        return text ? JSON.parse(text) : { success: true }; // 若回傳空字串視為成功
-      } catch (e) {
-        console.warn("Non-JSON response for delete:", text);
-        // 若回傳非 JSON 但 HTTP 200，視為成功但記錄警告
-        return res.ok ? { success: true, message: text } : { success: false, error: text };
-      }
+      await deleteDoc(doc(db, COLLECTIONS.QUOTES, id));
+      // [Hybrid Sync] Sync deletion to Sheets
+      syncToSheets(SYNC_WEBHOOKS.writeQuote, { id, _delete: true });
+      return { success: true };
     } catch (err) {
       console.error("Failed to delete quote:", err);
       return { success: false, error: err.message };
     }
   },
+
+  // 客戶
   async fetchCustomers() {
     try {
-      const res = await fetch(WEBHOOKS.readCustomers);
-      const data = await res.json();
-      return data.success ? data.data : [];
+      const snapshot = await getDocs(collection(db, COLLECTIONS.CUSTOMERS));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (err) {
       console.error("Failed to fetch customers:", err);
       return [];
@@ -108,20 +128,110 @@ const api = {
   },
   async saveCustomer(customer) {
     try {
-      const res = await fetch(WEBHOOKS.writeCustomer, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(customer),
-      });
-      return await res.json();
+      const customerId = customer.id || `C${String(Date.now()).slice(-6)}`;
+      const docRef = doc(db, COLLECTIONS.CUSTOMERS, customerId);
+      await setDoc(docRef, { ...customer, id: customerId, updatedAt: serverTimestamp() });
+
+      // [Hybrid Sync]
+      syncToSheets(SYNC_WEBHOOKS.writeCustomer, { ...customer, id: customerId });
+
+      return { success: true, id: customerId };
     } catch (err) {
       console.error("Failed to save customer:", err);
       return { success: false, error: err.message };
     }
   },
+  async deleteCustomer(id) {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.CUSTOMERS, id));
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to delete customer:", err);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 服務產品庫
+  async fetchServices() {
+    try {
+      const snapshot = await getDocs(collection(db, COLLECTIONS.SERVICES));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error("Failed to fetch services:", err);
+      return [];
+    }
+  },
+  async saveService(service, isDelete = false) {
+    try {
+      const serviceId = service.id || `s${Date.now()}`;
+      if (isDelete) {
+        await deleteDoc(doc(db, COLLECTIONS.SERVICES, serviceId));
+        syncToSheets(SYNC_WEBHOOKS.writeService, { id: serviceId, _delete: true });
+      } else {
+        await setDoc(doc(db, COLLECTIONS.SERVICES, serviceId), { ...service, id: serviceId });
+        syncToSheets(SYNC_WEBHOOKS.writeService, { ...service, id: serviceId });
+      }
+      return { success: true, id: serviceId };
+    } catch (err) {
+      console.error("Failed to save service:", err);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 備註模板
+  async fetchNotesTemplates() {
+    try {
+      const snapshot = await getDocs(collection(db, COLLECTIONS.NOTES_TEMPLATES));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error("Failed to fetch notes templates:", err);
+      return [];
+    }
+  },
+  async saveNoteTemplate(template, isDelete = false) {
+    try {
+      const templateId = template.id || `n${Date.now()}`;
+      if (isDelete) {
+        await deleteDoc(doc(db, COLLECTIONS.NOTES_TEMPLATES, templateId));
+        syncToSheets(SYNC_WEBHOOKS.writeNoteTemplate, { id: templateId, _delete: true });
+      } else {
+        await setDoc(doc(db, COLLECTIONS.NOTES_TEMPLATES, templateId), { ...template, id: templateId });
+        syncToSheets(SYNC_WEBHOOKS.writeNoteTemplate, { ...template, id: templateId });
+      }
+      return { success: true, id: templateId };
+    } catch (err) {
+      console.error("Failed to save note template:", err);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 全域設定 (公司資訊 & 匯款資訊)
+  async fetchSettings() {
+    try {
+      const docRef = doc(db, 'settings', 'global');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) return snap.data();
+      return null;
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+      return null;
+    }
+  },
+  async saveSettings(settings) {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), { ...settings, updatedAt: serverTimestamp() });
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+      return { success: false, error: err.message };
+    }
+  },
+
+
+  // 寄送郵件 (保留 n8n webhook，因為這需要後端處理)
   async sendQuoteEmail(quote) {
     try {
-      const res = await fetch(WEBHOOKS.sendEmail, {
+      const res = await fetch("https://nickleo9.zeabur.app/webhook/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quote),
@@ -132,58 +242,14 @@ const api = {
       return { success: false, error: err.message };
     }
   },
+
+  // 統編查詢 (保留 n8n webhook)
   async lookupTaxId(taxId) {
     try {
-      const res = await fetch(`${WEBHOOKS.lookupTaxId}?taxId=${taxId}`);
+      const res = await fetch(`https://nickleo9.zeabur.app/webhook/lookup-taxid?taxId=${taxId}`);
       return await res.json();
     } catch (err) {
       console.error("Failed to lookup taxId:", err);
-      return { success: false, error: err.message };
-    }
-  },
-  async fetchNotesTemplates() {
-    try {
-      const res = await fetch(WEBHOOKS.readNotesTemplates);
-      const data = await res.json();
-      return data.success ? data.data : [];
-    } catch (err) {
-      console.error("Failed to fetch notes templates:", err);
-      return [];
-    }
-  },
-  async saveNoteTemplate(template, isDelete = false) {
-    try {
-      const res = await fetch(WEBHOOKS.writeNoteTemplate, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...template, _delete: isDelete }),
-      });
-      return await res.json();
-    } catch (err) {
-      console.error("Failed to save note template:", err);
-      return { success: false, error: err.message };
-    }
-  },
-  async fetchServices() {
-    try {
-      const res = await fetch(WEBHOOKS.readServices);
-      const data = await res.json();
-      return data.success ? data.data : [];
-    } catch (err) {
-      console.error("Failed to fetch services:", err);
-      return [];
-    }
-  },
-  async saveService(service, isDelete = false) {
-    try {
-      const res = await fetch(WEBHOOKS.writeService, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...service, _delete: isDelete }),
-      });
-      return await res.json();
-    } catch (err) {
-      console.error("Failed to save service:", err);
       return { success: false, error: err.message };
     }
   },
@@ -1161,6 +1227,9 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
       <h1 className="text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
       <p className="text-sm text-gray-500 mb-8">管理公司資訊、匯款資訊與備註模板</p>
 
+      {/* Migration Tool */}
+      <DataMigration />
+
       {/* Company Info */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Building2 size={16} className="text-emerald-600" /> 公司資訊</h2>
@@ -1212,49 +1281,33 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
         </div>
       </div>
 
-      {/* Webhooks */}
+      {/* Firebase Status */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Zap size={16} className="text-emerald-600" /> n8n Webhook 設定</h2>
-        <p className="text-xs text-gray-400 mb-2">已連接至 <span className="font-mono text-emerald-600">{API_BASE}</span></p>
+        <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Zap size={16} className="text-orange-500" /> Firebase 連線狀態</h2>
+        <p className="text-xs text-gray-400 mb-2">已連接至 <span className="font-mono text-orange-600">znstudioquotation.firebaseapp.com</span></p>
         <div className="flex items-center gap-2 mb-5">
           <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> 已連線
           </span>
-          <a href="https://nickleo9.zeabur.app" target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-            開啟 n8n <ExternalLink size={10} />
+          <a href="https://console.firebase.google.com/project/znstudioquotation" target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+            開啟 Firebase Console <ExternalLink size={10} />
           </a>
         </div>
         <div className="space-y-3">
           {[
-            { key: "readQuotes", label: "讀取報價單", method: "GET", url: WEBHOOKS.readQuotes },
-            { key: "writeQuote", label: "寫入報價單", method: "POST", url: WEBHOOKS.writeQuote },
-            { key: "readCustomers", label: "讀取客戶", method: "GET", url: WEBHOOKS.readCustomers },
-            { key: "writeCustomer", label: "寫入客戶", method: "POST", url: WEBHOOKS.writeCustomer },
-            { key: "sendEmail", label: "寄送報價單", method: "POST", url: WEBHOOKS.sendEmail },
-            { key: "lookupTaxId", label: "統編查詢", method: "GET", url: WEBHOOKS.lookupTaxId },
+            { label: "報價單", collection: "quotations" },
+            { label: "客戶資料", collection: "customers" },
+            { label: "服務產品庫", collection: "services" },
+            { label: "備註模板", collection: "notesTemplates" },
           ].map(item => (
-            <div key={item.key} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded ${item.method === "GET" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{item.method}</span>
+            <div key={item.collection} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-orange-100 text-orange-700">Collection</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-gray-800">{item.label}</div>
-                <div className="text-xs text-gray-400 font-mono truncate">{item.url}</div>
+                <div className="text-xs text-gray-400 font-mono truncate">{item.collection}</div>
               </div>
-              <button onClick={() => navigator.clipboard.writeText(item.url)} className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600" title="複製 URL"><Copy size={14} /></button>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Sheets Schema */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><FileText size={16} className="text-emerald-600" /> Google Sheets 資料表結構</h2>
-        <div className="space-y-4 text-sm">
-          {[
-            { t: "📋 Sheet 1：客戶資料", s: "客戶編號 | 公司名稱 | 聯絡人 | 電話 | Email | 地址 | 統編 | 備註 | 建立日期" },
-            { t: "📝 Sheet 2：報價單", s: "報價單號 | 客戶編號 | 專案名稱 | 專案類型 | 狀態 | 報價日期 | 有效期限 | 稅率 | 付款條件 | 備註 | 建立日期 | 更新日期" },
-            { t: "📦 Sheet 3：報價項目", s: "報價單號 | 項目名稱 | 說明 | 數量 | 單位 | 單價 | 小計" },
-            { t: "🎯 Sheet 4：期程里程碑", s: "報價單號 | 週次 | 標題 | 工作項目" },
-          ].map(({ t, s }) => <div key={t}><h4 className="font-semibold text-gray-800 mb-1">{t}</h4><p className="text-xs text-gray-400 font-mono">{s}</p></div>)}
         </div>
       </div>
 
@@ -1301,31 +1354,46 @@ export default function App() {
     return saved ? JSON.parse(saved) : [...DEFAULT_SERVICES];
   });
 
-  // 持久化 brand 到 localStorage
+  // 持久化 brand 到 localStorage 並同步到 Firebase
   useEffect(() => {
     localStorage.setItem("zn_brand", JSON.stringify(brand));
-  }, [brand]);
+    // Debounce save to Firebase to avoid too many writes
+    const timer = setTimeout(() => {
+      api.saveSettings({ brand, bankInfo });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [brand, bankInfo]);
 
   // 持久化 services 到 localStorage
   useEffect(() => {
     localStorage.setItem("zn_services", JSON.stringify(services));
   }, [services]);
 
-  // 初始載入資料
+  // 初始載入資料 (Firebase)
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [quotesData, customersData, notesData] = await Promise.all([
+        // Firebase 匿名認證
+        await initAuth();
+        const [quotesData, customersData, notesData, settingsData] = await Promise.all([
           api.fetchQuotes(),
           api.fetchCustomers(),
           api.fetchNotesTemplates(),
+          api.fetchSettings(),
         ]);
+
         setQuotes(quotesData.length > 0 ? quotesData : SAMPLE_QUOTES);
         setCustomers(customersData.length > 0 ? customersData : SAMPLE_CUSTOMERS);
-        // 備註模板：後端有資料就用後端，否則用預設
-        if (notesData.length > 0) {
-          setNotesTemplates(notesData);
+        if (notesData.length > 0) setNotesTemplates(notesData);
+
+        // 載入全域設定
+        if (settingsData) {
+          if (settingsData.brand) setBrand(settingsData.brand);
+          if (settingsData.bankInfo) setBankInfo(settingsData.bankInfo);
+        } else {
+          // 第一次沒有雲端設定，初始化
+          await api.saveSettings({ brand, bankInfo });
         }
       } catch (err) {
         console.error("Failed to load data:", err);
@@ -1352,7 +1420,7 @@ export default function App() {
       if (res.success) {
         showToast("✅ 資料同步成功！");
       } else {
-        showToast("⚠️ 資料已存本地，但同步 n8n 失敗", "error");
+        showToast("⚠️ 資料已存本地，但同步雲端失敗", "error");
       }
     } catch (err) {
       console.error("Failed to save quote:", err);
