@@ -6,7 +6,7 @@ import {
   Download, Printer, Phone, Mail, Globe, MessageCircle, ArrowLeft,
   TrendingUp, DollarSign, Clock, CheckCircle, XCircle, Filter, MoreVertical,
   Building2, Hash, MapPin, Calendar, CreditCard, Zap, ExternalLink,
-  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle
+  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package
 } from "lucide-react";
 
 // ─── Brand Config (Default) ───
@@ -41,6 +41,8 @@ const WEBHOOKS = {
   writeQuote: `${API_BASE}/write-quote`,
   readCustomers: `${API_BASE}/read-customers`,
   writeCustomer: `${API_BASE}/write-customer`,
+  readServices: `${API_BASE}/read-services`,
+  writeService: `${API_BASE}/write-service`,
   readNotesTemplates: `${API_BASE}/read-notes-templates`,
   writeNoteTemplate: `${API_BASE}/write-note-template`,
   sendEmail: `${API_BASE}/send-email`,
@@ -159,6 +161,29 @@ const api = {
       return await res.json();
     } catch (err) {
       console.error("Failed to save note template:", err);
+      return { success: false, error: err.message };
+    }
+  },
+  async fetchServices() {
+    try {
+      const res = await fetch(WEBHOOKS.readServices);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.error("Failed to fetch services:", err);
+      return [];
+    }
+  },
+  async saveService(service, isDelete = false) {
+    try {
+      const res = await fetch(WEBHOOKS.writeService, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...service, _delete: isDelete }),
+      });
+      return await res.json();
+    } catch (err) {
+      console.error("Failed to save service:", err);
       return { success: false, error: err.message };
     }
   },
@@ -363,6 +388,7 @@ const Sidebar = ({ page, setPage, quoteCount, brand }) => {
     { id: "dashboard", icon: LayoutDashboard, label: "儀表板" },
     { id: "quotes", icon: FileText, label: "報價單", badge: quoteCount },
     { id: "customers", icon: Users, label: "客戶管理" },
+    { id: "services", icon: Package, label: "服務產品庫" },
     { id: "settings", icon: Settings, label: "系統設定" },
   ];
   return (
@@ -1022,10 +1048,88 @@ const CustomerForm = ({ customer, onSave, onCancel }) => {
   );
 };
 
-// ─── Settings ───
-const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates, brand, setBrand, services, setServices }) => {
-  const [newNote, setNewNote] = useState({ label: "", text: "" });
+// ─── Services Page (獨立服務產品庫頁面) ───
+const ServicesPage = ({ services, setServices }) => {
   const [newService, setNewService] = useState({ name: "", desc: "", unit: "式", price: 0 });
+  const inputCls = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
+
+  // 新增服務並同步到後端
+  const addService = async () => {
+    if (!newService.name || newService.price <= 0) return;
+    const serviceToSave = { id: genId(), ...newService };
+    setServices(prev => [...prev, serviceToSave]);
+    setNewService({ name: "", desc: "", unit: "式", price: 0 });
+    try {
+      await api.saveService(serviceToSave);
+    } catch (err) {
+      console.error("Failed to sync service:", err);
+    }
+  };
+
+  // 刪除服務並同步到後端
+  const removeService = async (service) => {
+    setServices(prev => prev.filter(s => s.id !== service.id));
+    try {
+      await api.saveService(service, true);
+    } catch (err) {
+      console.error("Failed to sync delete service:", err);
+    }
+  };
+
+  return (
+    <div className="p-8 max-w-4xl">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">服務產品庫</h1>
+      <p className="text-sm text-gray-500 mb-8">管理常用服務項目，建立報價單時可快速選用</p>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        {/* 服務列表 */}
+        <div className="space-y-2 mb-6 max-h-96 overflow-y-auto">
+          {services.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <Package size={48} className="mx-auto mb-3 opacity-50" />
+              <p className="text-sm">尚無服務項目</p>
+              <p className="text-xs">在下方新增你的第一個服務</p>
+            </div>
+          ) : (
+            services.map(s => (
+              <div key={s.id} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-emerald-200 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-800">{s.name}</div>
+                  <div className="text-xs text-gray-400 truncate">{s.desc || "無說明"}</div>
+                </div>
+                <div className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">{s.unit}</div>
+                <div className="text-sm font-semibold text-emerald-700 min-w-[80px] text-right">${fmt(s.price)}</div>
+                <button onClick={() => removeService(s)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* 新增服務表單 */}
+        <div className="border-t border-gray-100 pt-5">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">新增服務項目</h4>
+          <div className="grid grid-cols-12 gap-3">
+            <input value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} placeholder="服務名稱 *" className={`${inputCls} col-span-3`} />
+            <input value={newService.desc} onChange={e => setNewService(p => ({ ...p, desc: e.target.value }))} placeholder="說明" className={`${inputCls} col-span-4`} />
+            <select value={newService.unit} onChange={e => setNewService(p => ({ ...p, unit: e.target.value }))} className={`${inputCls} col-span-2`}>
+              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+            </select>
+            <input type="number" value={newService.price || ""} onChange={e => setNewService(p => ({ ...p, price: Number(e.target.value) || 0 }))} placeholder="單價 *" className={`${inputCls} col-span-2 text-right`} />
+            <button onClick={addService} disabled={!newService.name || newService.price <= 0} className="col-span-1 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Settings ───
+const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates, brand, setBrand }) => {
+  const [newNote, setNewNote] = useState({ label: "", text: "" });
 
   // 新增備註模板並同步到後端
   const addNoteTemplate = async () => {
@@ -1033,7 +1137,6 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
     const templateToSave = { id: genId(), ...newNote };
     setNotesTemplates(prev => [...prev, templateToSave]);
     setNewNote({ label: "", text: "" });
-    // 同步到 n8n
     try {
       await api.saveNoteTemplate(templateToSave);
     } catch (err) {
@@ -1044,7 +1147,6 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
   // 刪除備註模板並同步到後端
   const deleteNoteTemplate = async (template) => {
     setNotesTemplates(prev => prev.filter(n => n.id !== template.id));
-    // 同步刪除到 n8n
     try {
       await api.saveNoteTemplate(template, true);
     } catch (err) {
@@ -1052,14 +1154,12 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
     }
   };
 
-  const addService = () => { if (newService.name && newService.price > 0) { setServices(prev => [...prev, { id: genId(), ...newService }]); setNewService({ name: "", desc: "", unit: "式", price: 0 }); } };
-  const removeService = (id) => setServices(prev => prev.filter(s => s.id !== id));
   const inputClsN = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
 
   return (
     <div className="p-8 max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
-      <p className="text-sm text-gray-500 mb-8">管理公司資訊、服務資料庫、匯款資訊與備註模板</p>
+      <p className="text-sm text-gray-500 mb-8">管理公司資訊、匯款資訊與備註模板</p>
 
       {/* Company Info */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -1074,37 +1174,6 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">報價單號前綴</label><input value={brand.prefix} onChange={e => setBrand(p => ({ ...p, prefix: e.target.value }))} className={inputClsN} maxLength={4} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Threads</label><input value={brand.threadsHandle} onChange={e => setBrand(p => ({ ...p, threadsHandle: e.target.value }))} className={inputClsN} placeholder="@username" /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">LINE 官方帳號</label><input value={brand.lineOA} onChange={e => setBrand(p => ({ ...p, lineOA: e.target.value }))} className={inputClsN} placeholder="https://lin.ee/xxx" /></div>
-        </div>
-      </div>
-
-      {/* Services Library */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><FileText size={16} className="text-emerald-600" /> 服務/產品資料庫</h2>
-        <p className="text-xs text-gray-400 mb-5">預設的常用服務項目，建立報價單時可快速選用</p>
-        <div className="space-y-2 mb-5 max-h-60 overflow-y-auto">
-          {services.map(s => (
-            <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-gray-800">{s.name}</div>
-                <div className="text-xs text-gray-400 truncate">{s.desc}</div>
-              </div>
-              <div className="text-xs text-gray-500">{s.unit}</div>
-              <div className="text-sm font-semibold text-emerald-700">${fmt(s.price)}</div>
-              <button onClick={() => removeService(s.id)} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={14} /></button>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-gray-100 pt-4">
-          <h4 className="text-xs font-semibold text-gray-600 mb-2">新增服務項目</h4>
-          <div className="grid grid-cols-12 gap-2">
-            <input value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} placeholder="服務名稱" className={`${inputClsN} col-span-3`} />
-            <input value={newService.desc} onChange={e => setNewService(p => ({ ...p, desc: e.target.value }))} placeholder="說明" className={`${inputClsN} col-span-4`} />
-            <select value={newService.unit} onChange={e => setNewService(p => ({ ...p, unit: e.target.value }))} className={`${inputClsN} col-span-2`}>
-              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
-            <input type="number" value={newService.price || ""} onChange={e => setNewService(p => ({ ...p, price: Number(e.target.value) || 0 }))} placeholder="單價" className={`${inputClsN} col-span-2 text-right`} />
-            <button onClick={addService} disabled={!newService.name || newService.price <= 0} className="col-span-1 px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40"><Plus size={14} /></button>
-          </div>
         </div>
       </div>
 
@@ -1387,7 +1456,8 @@ export default function App() {
       case "new-quote": return <QuoteForm editing={editingQuote} customers={customers} quotes={quotes} notesTemplates={notesTemplates} bankInfo={bankInfo} onSave={saveQuote} onCancel={() => setPage("quotes")} services={services} brand={brand} />;
       case "preview": return <QuotePreview quote={previewQuote} onBack={() => setPage("quotes")} updateQuoteStatus={updateQuoteStatus} brand={brand} />;
       case "customers": return <CustomerList customers={customers} setCustomers={setCustomers} />;
-      case "settings": return <SettingsPage bankInfo={bankInfo} setBankInfo={setBankInfo} notesTemplates={notesTemplates} setNotesTemplates={setNotesTemplates} brand={brand} setBrand={setBrand} services={services} setServices={setServices} />;
+      case "services": return <ServicesPage services={services} setServices={setServices} />;
+      case "settings": return <SettingsPage bankInfo={bankInfo} setBankInfo={setBankInfo} notesTemplates={notesTemplates} setNotesTemplates={setNotesTemplates} brand={brand} setBrand={setBrand} />;
       default: return <Dashboard quotes={quotes} setPage={setPage} setEditingQuote={setEditingQuote} setPreviewQuote={setPreviewQuote} brand={brand} />;
     }
   };

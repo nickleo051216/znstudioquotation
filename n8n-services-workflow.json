@@ -1,0 +1,194 @@
+{
+    "name": "ZN Quotation - Services Sync",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "read-services",
+                "responseMode": "responseNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "webhook-read-services",
+            "name": "Read Services",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                300
+            ],
+            "webhookId": "read-services"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "write-service",
+                "responseMode": "responseNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "webhook-write-service",
+            "name": "Write Service",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                540
+            ],
+            "webhookId": "write-service"
+        },
+        {
+            "parameters": {
+                "method": "GET",
+                "url": "https://script.google.com/macros/s/AKfycbyCjvhIk453nrUPdZ3R8dGK6Ni3v3tmVsxfOD5CUXaf0GA50Sbp3teAg8-xPPS-YC-D/exec",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "value": "read_services"
+                        }
+                    ]
+                },
+                "options": {
+                    "redirect": {
+                        "redirect": {
+                            "followRedirects": true
+                        }
+                    }
+                }
+            },
+            "id": "http-read-services",
+            "name": "GET Services from GAS",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://script.google.com/macros/s/AKfycbyCjvhIk453nrUPdZ3R8dGK6Ni3v3tmVsxfOD5CUXaf0GA50Sbp3teAg8-xPPS-YC-D/exec",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify($json) }}",
+                "options": {
+                    "redirect": {
+                        "redirect": {
+                            "followRedirects": true
+                        }
+                    }
+                }
+            },
+            "id": "http-write-service",
+            "name": "POST Service to GAS",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                480,
+                540
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-read-services",
+            "name": "Respond Read Services",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-write-service",
+            "name": "Respond Write Service",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                540
+            ]
+        }
+    ],
+    "connections": {
+        "Read Services": {
+            "main": [
+                [
+                    {
+                        "node": "GET Services from GAS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GET Services from GAS": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Read Services",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write Service": {
+            "main": [
+                [
+                    {
+                        "node": "POST Service to GAS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "POST Service to GAS": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Write Service",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [],
+    "triggerCount": 0,
+    "pinData": {}
+}
