@@ -70,6 +70,20 @@ const api = {
       return { success: false, error: err.message };
     }
   },
+  async deleteQuote(id) {
+    try {
+      // 傳送帶有 _delete 標記的物件，讓 n8n 識別為刪除操作
+      const res = await fetch(WEBHOOKS.writeQuote, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, _delete: true }),
+      });
+      return await res.json();
+    } catch (err) {
+      console.error("Failed to delete quote:", err);
+      return { success: false, error: err.message };
+    }
+  },
   async fetchCustomers() {
     try {
       const res = await fetch(WEBHOOKS.readCustomers);
@@ -1170,7 +1184,23 @@ export default function App() {
     }
   };
 
-  const deleteQuote = (id) => setQuotes(prev => prev.filter(q => q.id !== id));
+  const deleteQuote = async (id) => {
+    if (!window.confirm("確定要刪除這張報價單嗎？此動作無法復原。")) return;
+
+    // Optimistic Update: 先從 UI 移除
+    setQuotes(prev => prev.filter(q => q.id !== id));
+
+    // Sync to Backend
+    setSyncing(true);
+    try {
+      await api.deleteQuote(id);
+    } catch (err) {
+      console.error("Failed to sync delete:", err);
+      // 如果失敗，可能需要提示用戶或還原（這邊先簡單處理，僅 log）
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const duplicateQuote = (quote) => {
     const newQuote = {
