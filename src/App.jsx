@@ -1203,16 +1203,19 @@ export default function App() {
   };
 
   const duplicateQuote = (quote) => {
+    // Deep clone to ensure no references linger (深拷貝確保資料純淨)
+    const cloned = JSON.parse(JSON.stringify(quote));
+
     const newQuote = {
-      ...quote,
+      ...cloned,
       id: genId(),
       quoteNumber: genQuoteNumber(quotes, brand.prefix),
       status: "draft",
       createdAt: today(),
       history: undefined, // 不複製版本歷史
       // 複製項目內容但給予新的 ID，確保完全獨立
-      items: quote.items.map(item => ({ ...item, id: genId() })),
-      milestones: quote.milestones.map(ms => ({ ...ms, id: genId() })),
+      items: cloned.items.map(item => ({ ...item, id: genId() })),
+      milestones: cloned.milestones.map(ms => ({ ...ms, id: genId() })),
     };
     setEditingQuote(newQuote);
     setPage("new-quote");
