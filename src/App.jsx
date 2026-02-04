@@ -104,11 +104,11 @@ const api = {
       return { success: false, error: err.message };
     }
   },
-  async deleteQuote(id) {
+  async deleteQuote(id, quoteNumber) {
     try {
       await deleteDoc(doc(db, COLLECTIONS.QUOTES, id));
       // [Hybrid Sync] Sync deletion to Sheets
-      syncToSheets(SYNC_WEBHOOKS.writeQuote, { id, _delete: true });
+      syncToSheets(SYNC_WEBHOOKS.writeQuote, { id: quoteNumber, _delete: true });
       return { success: true };
     } catch (err) {
       console.error("Failed to delete quote:", err);
@@ -849,6 +849,17 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
   const total = subtotal + tax;
   const bank = quote.bankInfo || DEFAULT_BANK;
 
+  // ─── Dynamic Title for PDF Filename ───
+  useEffect(() => {
+    const originalTitle = document.title;
+    if (quote && brand) {
+      document.title = `${quote.quoteNumber}-${quote.clientName}-${brand.name}-報價單`;
+    }
+    return () => {
+      document.title = "ZN Studio 報價系統";
+    };
+  }, [quote, brand]);
+
   return (
     <div className="p-8">
       {/* Controls - hidden when printing */}
@@ -1457,7 +1468,7 @@ export default function App() {
       try {
         // 使用 quoteNumber 作為刪除 Key，因為 Sheets 是用報價單號當主鍵
         // 傳送 quoteNumber 給後端，而非內部 id
-        const res = await api.deleteQuote(quoteToDelete.quoteNumber);
+        const res = await api.deleteQuote(quoteToDelete.id, quoteToDelete.quoteNumber);
 
         // 檢查回傳結果 (GAS 通常回傳 array 或 object)
         // 嚴格檢查：必須要是 success 且真的有刪除 quote (deleted.quote > 0)
