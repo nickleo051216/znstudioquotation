@@ -32,14 +32,6 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
-  /* Push every page's content area below the fixed header */
-  @page {
-    margin-top: 54px;
-    margin-bottom: 0;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
   /* Preserve colors */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -118,18 +110,9 @@ th {
     break-after: page;
   }
 
-  /* Repeating header on every printed page */
+  /* Print header bar — static, appears at top of page 1 and page 2 */
   .print-page-header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 100;
-  }
-
-  /* No extra padding needed — @page margin-top handles all pages */
-  .print-body-offset {
-    padding-top: 0 !important;
+    display: flex;
   }
 }
 
