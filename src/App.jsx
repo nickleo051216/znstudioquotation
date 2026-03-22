@@ -996,15 +996,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </table>
           </div>
 
-          <div className="flex justify-end mb-8">
-            <div className="w-72">
-              <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>小計 Subtotal</span><span className="font-semibold">${fmt(subtotal)}</span></div>
-              <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>營業稅 Tax ({quote.taxRate}%)</span><span className="font-semibold">${fmt(tax)}</span></div>
-              <div className="flex justify-between py-3 text-lg font-bold" style={{ color: "#059669" }}><span>總計 Total</span><span>${fmt(total)}</span></div>
-            </div>
-          </div>
-
-          {/* Milestones */}
+          {/* Milestones — page 1 */}
           {quote.milestones && quote.milestones.length > 0 && (
             <div className="mb-8 avoid-break">
               <h3 className="flex items-center gap-2 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4"><Calendar size={14} /> 專案期程 Project Timeline</h3>
@@ -1026,35 +1018,49 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </div>
           )}
 
-          {/* Payment */}
-          {quote.paymentTerms && (
-            <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-              <div className="flex items-center gap-2 mb-1"><CreditCard size={14} className="text-emerald-600" /><span className="text-xs font-bold text-emerald-800">付款條件 Payment Terms</span></div>
-              <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
-            </div>
-          )}
+          {/* ── PAGE 2: Payment / Bank / Notes / Total / Signature ── */}
+          <div style={{ pageBreakBefore: "always" }}>
 
-          {/* Bank */}
-          {bank.bankName && (
-            <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
-              <div className="flex items-center gap-2 mb-2"><Landmark size={14} className="text-blue-600" /><span className="text-xs font-bold text-blue-800">匯款資訊 Bank Transfer Info</span></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                <div><span className="text-blue-500">銀行名稱：</span><span className="font-semibold text-blue-900">{bank.bankName}</span></div>
-                <div><span className="text-blue-500">銀行代碼：</span><span className="font-semibold text-blue-900">{bank.bankCode}</span></div>
-                <div><span className="text-blue-500">分行名稱：</span><span className="font-semibold text-blue-900">{bank.branchName}</span></div>
-                <div><span className="text-blue-500">戶　　名：</span><span className="font-semibold text-blue-900">{bank.accountName}</span></div>
-                {bank.accountNumber && <div className="col-span-2"><span className="text-blue-500">匯款帳號：</span><span className="font-mono font-bold text-blue-900 text-base tracking-wider">{bank.accountNumber}</span></div>}
+          {/* Payment + Bank — two columns on page 2 */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Left: Payment Terms */}
+            <div>
+              {quote.paymentTerms && (
+                <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                  <div className="flex items-center gap-2 mb-1"><CreditCard size={14} className="text-emerald-600" /><span className="text-xs font-bold text-emerald-800">付款條件 Payment Terms</span></div>
+                  <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
+                </div>
+              )}
+              {/* Notes */}
+              {quote.notes && (
+                <div className="rounded-xl p-4 avoid-break" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+                  <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
+                  <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
+                </div>
+              )}
+            </div>
+            {/* Right: Bank + Total */}
+            <div>
+              {bank.bankName && (
+                <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
+                  <div className="flex items-center gap-2 mb-2"><Landmark size={14} className="text-blue-600" /><span className="text-xs font-bold text-blue-800">匯款資訊 Bank Transfer Info</span></div>
+                  <div className="grid grid-cols-1 gap-y-1 text-sm">
+                    <div><span className="text-blue-500">銀行名稱：</span><span className="font-semibold text-blue-900">{bank.bankName}</span></div>
+                    <div><span className="text-blue-500">銀行代碼：</span><span className="font-semibold text-blue-900">{bank.bankCode}</span></div>
+                    <div><span className="text-blue-500">分行名稱：</span><span className="font-semibold text-blue-900">{bank.branchName}</span></div>
+                    <div><span className="text-blue-500">戶　　名：</span><span className="font-semibold text-blue-900">{bank.accountName}</span></div>
+                    {bank.accountNumber && <div><span className="text-blue-500">匯款帳號：</span><span className="font-mono font-bold text-blue-900 text-base tracking-wider">{bank.accountNumber}</span></div>}
+                  </div>
+                </div>
+              )}
+              {/* Total */}
+              <div className="rounded-xl p-4 avoid-break" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>小計 Subtotal</span><span className="font-semibold">${fmt(subtotal)}</span></div>
+                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>營業稅 Tax ({quote.taxRate}%)</span><span className="font-semibold">${fmt(tax)}</span></div>
+                <div className="flex justify-between py-3 text-lg font-bold" style={{ color: "#059669" }}><span>總計 Total</span><span>${fmt(total)}</span></div>
               </div>
             </div>
-          )}
-
-          {/* Notes */}
-          {quote.notes && (
-            <div className="rounded-xl p-4 mb-6 avoid-break" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-              <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
-              <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
-            </div>
-          )}
+          </div>
 
           {/* Footer - Signature Section */}
           <div className="border-t border-gray-200 pt-4 mt-6">
@@ -1077,6 +1083,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
               </div>
             </div>
           </div>
+          </div>{/* end page 2 */}
         </div>
 
         {/* ═══════════ Print Footer Bar (only visible when printing) ═══════════ */}
