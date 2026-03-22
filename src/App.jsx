@@ -13,7 +13,7 @@ import DataMigration from "./components/DataMigration"; // Import Migration Tool
 // ─── Brand Config (Default) ───
 const DEFAULT_BRAND = {
   name: "ZN Studio",
-  owner: "Nick Chang",
+  owner: "張惟荏 Nick Chang",
   email: "nickleo051216@gmail.com",
   phone: "0932-684-051",
   website: "https://znstudio216.com/",
@@ -261,7 +261,7 @@ const DEFAULT_BANK = {
   bankCode: "812",
   branchName: "板橋分行",
   accountNumber: "",
-  accountName: "Nick Chang",
+  accountName: "張惟荏 Nick Chang",
 };
 
 // ─── Status Config ───
@@ -296,6 +296,7 @@ const DEFAULT_NOTES_TEMPLATES = [
   { id: "n6", label: "教育訓練", text: "含 2 小時線上或實體教育訓練，以及系統操作手冊（PDF 格式）。n8n 工作流程原始檔將完整交付給業主。" },
   { id: "n7", label: "報價有效期", text: "本報價單自發出日起 30 天內有效，逾期需重新報價。" },
   { id: "n8", label: "智慧財產權", text: "專案完成後，所有客製化開發之程式碼與工作流程歸業主所有。ZN Studio 保留將通用技術方案用於其他專案之權利。" },
+  { id: "n9", label: "付款期限 14 天", text: "請於雙方確認報價單後 14 天內完成匯款，逾期視為取消委託。" },
 ];
 
 // ─── Sample Data ───
