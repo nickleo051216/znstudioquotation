@@ -261,7 +261,7 @@ const DEFAULT_BANK = {
   bankCode: "812",
   branchName: "板橋分行",
   accountNumber: "",
-  accountName: "張惟荏 Nick Chang",
+  accountName: "張惟荏",
 };
 
 // ─── Status Config ───
@@ -1026,7 +1026,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">接案單位</h4>
-                <p className="text-sm font-bold text-gray-900">{brand.owner} | {brand.name}</p>
+                <p className="text-sm font-bold text-gray-900">{brand.owner}｜{brand.name}</p>
                 <div className="mt-2 space-y-1 text-xs text-gray-500">
                   <p>📧 {brand.email}</p><p>📱 {brand.phone}</p><p>🌐 {brand.website}</p>
                   <p className="print:hidden">💬 Threads: {brand.threadsHandle}</p><p className="print:hidden">👥 LINE 社群: {brand.lineGroup}</p><p className="print:hidden">💼 LINE: {brand.lineOA}</p>
