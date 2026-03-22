@@ -6,7 +6,7 @@ import {
   Download, Printer, Phone, Mail, Globe, MessageCircle, ArrowLeft,
   TrendingUp, DollarSign, Clock, CheckCircle, XCircle, Filter, MoreVertical,
   Building2, Hash, MapPin, Calendar, CreditCard, Zap, ExternalLink,
-  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package
+  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package, Menu
 } from "lucide-react";
 import DataMigration from "./components/DataMigration"; // Import Migration Tool
 
@@ -449,7 +449,7 @@ const EmptyState = ({ icon: Icon, title, desc, action, onAction }) => (
 );
 
 // ─── Sidebar ───
-const Sidebar = ({ page, setPage, quoteCount, brand }) => {
+const Sidebar = ({ page, setPage, quoteCount, brand, isOpen, onClose }) => {
   const nav = [
     { id: "dashboard", icon: LayoutDashboard, label: "儀表板" },
     { id: "quotes", icon: FileText, label: "報價單", badge: quoteCount },
@@ -458,38 +458,48 @@ const Sidebar = ({ page, setPage, quoteCount, brand }) => {
     { id: "settings", icon: Settings, label: "系統設定" },
   ];
   return (
-    <aside className="w-64 min-h-screen flex flex-col print:hidden" style={{ background: "linear-gradient(180deg, #0c1222 0%, #162032 100%)" }}>
-      <div className="px-5 py-6 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base" style={{ background: "linear-gradient(135deg, #059669, #34d399)", color: "#fff" }}>ZN</div>
-          <div>
-            <div className="text-white font-bold text-base tracking-wide">ZN Studio</div>
-            <div className="text-emerald-400/70 text-xs">報價管理系統 v2.1</div>
+    <>
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />
+      )}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 min-h-screen flex flex-col print:hidden transition-transform duration-300 md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ background: "linear-gradient(180deg, #0c1222 0%, #162032 100%)" }}
+      >
+        <div className="px-5 py-6 border-b border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base" style={{ background: "linear-gradient(135deg, #059669, #34d399)", color: "#fff" }}>ZN</div>
+            <div>
+              <div className="text-white font-bold text-base tracking-wide">ZN Studio</div>
+              <div className="text-emerald-400/70 text-xs">報價管理系統 v2.1</div>
+            </div>
+          </div>
+          <button className="md:hidden text-gray-400 hover:text-white p-1" onClick={onClose}><X size={18} /></button>
+        </div>
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          {nav.map(n => (
+            <button key={n.id} onClick={() => { setPage(n.id); onClose(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === n.id || (n.id === "quotes" && (page === "new-quote" || page === "preview"))
+                ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}>
+              <n.icon size={18} />
+              <span className="flex-1 text-left">{n.label}</span>
+              {n.badge > 0 && <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-300">{n.badge}</span>}
+            </button>
+          ))}
+        </nav>
+        <div className="px-4 py-4 border-t border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center text-emerald-400 text-xs font-bold">NC</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-white text-xs font-medium truncate">{brand.owner}</div>
+              <div className="text-gray-500 text-xs truncate">{brand.email}</div>
+            </div>
           </div>
         </div>
-      </div>
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        {nav.map(n => (
-          <button key={n.id} onClick={() => setPage(n.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${page === n.id || (n.id === "quotes" && (page === "new-quote" || page === "preview"))
-              ? "bg-white/10 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}>
-            <n.icon size={18} />
-            <span className="flex-1 text-left">{n.label}</span>
-            {n.badge > 0 && <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-300">{n.badge}</span>}
-          </button>
-        ))}
-      </nav>
-      <div className="px-4 py-4 border-t border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600/20 flex items-center justify-center text-emerald-400 text-xs font-bold">NC</div>
-          <div className="flex-1 min-w-0">
-            <div className="text-white text-xs font-medium truncate">{brand.owner}</div>
-            <div className="text-gray-500 text-xs truncate">{brand.email}</div>
-          </div>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 
@@ -505,19 +515,19 @@ const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote, brand })
   }, [quotes]);
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div><h1 className="text-2xl font-bold text-gray-900">儀表板</h1><p className="text-sm text-gray-500 mt-1">歡迎回來，{brand.owner}</p></div>
+    <div className="p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 md:mb-8">
+        <div><h1 className="text-xl md:text-2xl font-bold text-gray-900">儀表板</h1><p className="text-sm text-gray-500 mt-1">歡迎回來，{brand.owner}</p></div>
         <button onClick={() => { setEditingQuote(null); setPage("new-quote"); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-lg" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}><Plus size={16} /> 新增報價單</button>
       </div>
-      <div className="grid grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6 md:mb-8">
         <StatCard icon={FileText} label="總報價單" value={quotes.length} sub="所有報價單" />
         <StatCard icon={DollarSign} label="已成交金額" value={`$${fmt(totalRevenue)}`} sub="已接受的報價" color="emerald" />
         <StatCard icon={Clock} label="待確認金額" value={`$${fmt(pendingRevenue)}`} sub="已寄出待回覆" color="blue" />
         <StatCard icon={TrendingUp} label="成交率" value={quotes.length ? `${Math.round(quotes.filter(q => q.status === "accepted").length / quotes.length * 100)}%` : "0%"} sub="接受 / 總數" color="amber" />
       </div>
-      <div className="grid grid-cols-3 gap-5 mb-8">
-        <div className="col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="md:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">月度報價金額趨勢</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyData}><XAxis dataKey="name" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 12 }} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} /><Tooltip formatter={v => `$${fmt(v)}`} /><Bar dataKey="報價金額" fill="#059669" radius={[6, 6, 0, 0]} /></BarChart>
@@ -535,10 +545,10 @@ const Dashboard = ({ quotes, setPage, setEditingQuote, setPreviewQuote, brand })
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between"><h3 className="text-sm font-semibold text-gray-700">最近報價單</h3><button onClick={() => setPage("quotes")} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">查看全部 →</button></div>
         <div className="divide-y divide-gray-50">
           {quotes.slice(0, 5).map(q => (
-            <div key={q.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => { setPreviewQuote(q); setPage("preview"); }}>
-              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><FileText size={16} className="text-emerald-600" /></div>
-              <div className="flex-1 min-w-0"><div className="text-sm font-medium text-gray-900 truncate">{q.projectName}</div><div className="text-xs text-gray-400">{q.quoteNumber} · {q.clientName}</div></div>
-              <div className="text-right"><div className="text-sm font-bold text-gray-900 mb-1">${fmt(calcTotal(q.items, q.taxRate))}</div><StatusBadge status={q.status} /></div>
+            <div key={q.id} className="flex items-center gap-3 px-4 md:px-5 py-3.5 hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => { setPreviewQuote(q); setPage("preview"); }}>
+              <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-emerald-50 flex items-center justify-center"><FileText size={16} className="text-emerald-600" /></div>
+              <div className="flex-1 min-w-0"><div className="text-sm font-medium text-gray-900 truncate">{q.projectName}</div><div className="text-xs text-gray-400 truncate">{q.quoteNumber} · {q.clientName}</div></div>
+              <div className="text-right flex-shrink-0"><div className="text-sm font-bold text-gray-900 mb-1">${fmt(calcTotal(q.items, q.taxRate))}</div><StatusBadge status={q.status} /></div>
             </div>
           ))}
         </div>
@@ -558,42 +568,42 @@ const QuoteList = ({ quotes, setPage, setEditingQuote, setPreviewQuote, deleteQu
   });
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">報價單管理</h1>
+    <div className="p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">報價單管理</h1>
         <button onClick={() => { setEditingQuote(null); setPage("new-quote"); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}><Plus size={16} /> 新增報價單</button>
       </div>
-      <div className="flex gap-3 mb-5">
-        <div className="flex-1 relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋報價單號、客戶名稱、專案名稱..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400" /></div>
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="flex-1 relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋報價單號、客戶、專案..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400" /></div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white"><option value="all">全部狀態</option>{Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
       </div>
       {filtered.length === 0 ? (
         <EmptyState icon={FileText} title="尚無報價單" desc="建立第一張報價單開始使用系統" action="新增報價單" onAction={() => { setEditingQuote(null); setPage("new-quote"); }} />
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-          <table className="w-full">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead><tr className="border-b border-gray-100">
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">報價單號</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">客戶 / 專案</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">金額</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">狀態 <span className="text-gray-400 text-[10px]">點擊可改</span></th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">日期</th>
-              <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">操作</th>
+              <th className="text-left px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">報價單號</th>
+              <th className="text-left px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">客戶 / 專案</th>
+              <th className="text-left px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">金額</th>
+              <th className="text-left px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">狀態 <span className="text-gray-400 text-[10px]">點擊可改</span></th>
+              <th className="text-left px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">日期</th>
+              <th className="text-right px-4 md:px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">操作</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map((q, idx) => (
                 <tr key={q.id} className="hover:bg-gray-50/50 transition-colors relative" style={{ zIndex: filtered.length - idx }}>
-                  <td className="px-5 py-3.5"><span className="text-sm font-mono font-semibold text-emerald-600">{q.quoteNumber}</span></td>
-                  <td className="px-5 py-3.5"><div className="text-sm font-medium text-gray-900">{q.clientName}</div><div className="text-xs text-gray-400">{q.projectName}</div></td>
-                  <td className="px-5 py-3.5"><span className="text-sm font-bold text-gray-900">${fmt(calcTotal(q.items, q.taxRate))}</span></td>
-                  <td className="px-5 py-3.5"><StatusDropdown currentStatus={q.status} onChange={(s) => updateQuoteStatus(q.id, s)} /></td>
-                  <td className="px-5 py-3.5"><span className="text-xs text-gray-500">{q.createdAt}</span></td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-4 md:px-5 py-3.5"><span className="text-sm font-mono font-semibold text-emerald-600">{q.quoteNumber}</span></td>
+                  <td className="px-4 md:px-5 py-3.5"><div className="text-sm font-medium text-gray-900">{q.clientName}</div><div className="text-xs text-gray-400">{q.projectName}</div></td>
+                  <td className="px-4 md:px-5 py-3.5"><span className="text-sm font-bold text-gray-900">${fmt(calcTotal(q.items, q.taxRate))}</span></td>
+                  <td className="px-4 md:px-5 py-3.5"><StatusDropdown currentStatus={q.status} onChange={(s) => updateQuoteStatus(q.id, s)} /></td>
+                  <td className="px-4 md:px-5 py-3.5 hidden sm:table-cell"><span className="text-xs text-gray-500">{q.createdAt}</span></td>
+                  <td className="px-4 md:px-5 py-3.5">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => { setPreviewQuote(q); setPage("preview"); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-emerald-600" title="預覽"><Eye size={15} /></button>
-                      <button onClick={() => { setEditingQuote(q); setPage("new-quote"); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600" title="編輯"><Edit3 size={15} /></button>
-                      <button onClick={() => duplicateQuote(q)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-amber-600" title="複製"><Copy size={15} /></button>
-                      <button onClick={() => deleteQuote(q.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500" title="刪除"><Trash2 size={15} /></button>
+                      <button onClick={() => { setPreviewQuote(q); setPage("preview"); }} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-emerald-600" title="預覽"><Eye size={15} /></button>
+                      <button onClick={() => { setEditingQuote(q); setPage("new-quote"); }} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600" title="編輯"><Edit3 size={15} /></button>
+                      <button onClick={() => duplicateQuote(q)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-amber-600" title="複製"><Copy size={15} /></button>
+                      <button onClick={() => deleteQuote(q.id)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500" title="刪除"><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -684,40 +694,40 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
   const labelCls = "block text-xs font-semibold text-gray-600 mb-1.5";
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={onCancel} className="p-2 rounded-lg hover:bg-gray-100"><ArrowLeft size={18} /></button>
-        <h1 className="text-2xl font-bold text-gray-900">{editing ? "編輯報價單" : "建立報價單"}</h1>
-        <span className="ml-2 font-mono text-emerald-600 text-sm font-semibold bg-emerald-50 px-2 py-0.5 rounded">{form.quoteNumber}</span>
+        <button onClick={onCancel} className="p-2 rounded-lg hover:bg-gray-100 flex-shrink-0"><ArrowLeft size={18} /></button>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">{editing ? "編輯報價單" : "建立報價單"}</h1>
+        <span className="ml-1 font-mono text-emerald-600 text-xs md:text-sm font-semibold bg-emerald-50 px-2 py-0.5 rounded">{form.quoteNumber}</span>
       </div>
 
       {/* Client */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><Users size={16} className="text-emerald-600" /> 客戶資訊</h2>
         <div className="mb-4"><label className={labelCls}>選擇現有客戶</label><select value={form.customerId} onChange={e => selectCustomer(e.target.value)} className={inputCls}><option value="">— 手動輸入或選擇客戶 —</option>{customers.map(c => <option key={c.id} value={c.id}>{c.name} ({c.contact})</option>)}</select></div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className={labelCls}>公司/客戶名稱</label><input value={form.clientName} onChange={e => setField("clientName", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>聯絡人</label><input value={form.clientContact} onChange={e => setField("clientContact", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>電話</label><input value={form.clientPhone} onChange={e => setField("clientPhone", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>Email</label><input value={form.clientEmail} onChange={e => setField("clientEmail", e.target.value)} className={inputCls} /></div>
-          <div className="col-span-2"><label className={labelCls}>地址</label><input value={form.clientAddress} onChange={e => setField("clientAddress", e.target.value)} className={inputCls} /></div>
+          <div className="col-span-1 sm:col-span-2"><label className={labelCls}>地址</label><input value={form.clientAddress} onChange={e => setField("clientAddress", e.target.value)} className={inputCls} /></div>
         </div>
       </div>
 
       {/* Project */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><Zap size={16} className="text-emerald-600" /> 專案資訊</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className={labelCls}>專案名稱</label><input value={form.projectName} onChange={e => setField("projectName", e.target.value)} className={inputCls} placeholder="例：LINE OA 智慧客服系統" /></div>
           <div><label className={labelCls}>專案類型</label><select value={form.projectType} onChange={e => setField("projectType", e.target.value)} className={inputCls}>{PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
           <div><label className={labelCls}>建立日期</label><input type="date" value={form.createdAt} onChange={e => setField("createdAt", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>報價有效至</label><input type="date" value={form.validUntil} onChange={e => setField("validUntil", e.target.value)} className={inputCls} /></div>
-          <div className="col-span-2"><label className={labelCls}>付款條件</label><input value={form.paymentTerms} onChange={e => setField("paymentTerms", e.target.value)} className={inputCls} /></div>
+          <div className="col-span-1 sm:col-span-2"><label className={labelCls}>付款條件</label><input value={form.paymentTerms} onChange={e => setField("paymentTerms", e.target.value)} className={inputCls} /></div>
         </div>
       </div>
 
       {/* Items */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><FileText size={16} className="text-emerald-600" /> 報價項目</h2>
           <div className="flex items-center gap-2">
@@ -730,13 +740,13 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
         <div className="space-y-3">
           {form.items.map((item, idx) => (
             <div key={item.id} className="grid grid-cols-12 gap-2 items-start p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-              <div className="col-span-3"><label className="text-xs text-gray-400 mb-1 block">項目名稱</label><input value={item.name} onChange={e => updateItem(idx, "name", e.target.value)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-              <div className="col-span-3"><label className="text-xs text-gray-400 mb-1 block">規格描述/備註</label><textarea value={item.desc} onChange={e => updateItem(idx, "desc", e.target.value)} rows={2} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 resize-y min-h-[38px]" placeholder="可輸入多行說明..." /></div>
-              <div className="col-span-1"><label className="text-xs text-gray-400 mb-1 block">數量</label><input type="number" min="1" value={item.qty} onChange={e => updateItem(idx, "qty", Number(e.target.value) || 1)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-              <div className="col-span-1"><label className="text-xs text-gray-400 mb-1 block">單位</label><select value={item.unit} onChange={e => updateItem(idx, "unit", e.target.value)} className="w-full px-1 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400">{UNITS.map(u => <option key={u} value={u}>{u}</option>)}</select></div>
-              <div className="col-span-2"><label className="text-xs text-gray-400 mb-1 block">單價</label><input type="number" min="0" value={item.price} onChange={e => updateItem(idx, "price", Number(e.target.value) || 0)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-right focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-              <div className="col-span-1 text-right"><label className="text-xs text-gray-400 mb-1 block">小計</label><div className="py-1.5 text-sm font-semibold text-gray-800">${fmt(item.qty * item.price)}</div></div>
-              <div className="col-span-1 flex items-end justify-center pb-0.5">{form.items.length > 1 && <button onClick={() => removeItem(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={15} /></button>}</div>
+              <div className="col-span-12 md:col-span-3"><label className="text-xs text-gray-400 mb-1 block">項目名稱</label><input value={item.name} onChange={e => updateItem(idx, "name", e.target.value)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+              <div className="col-span-12 md:col-span-3"><label className="text-xs text-gray-400 mb-1 block">規格描述/備註</label><textarea value={item.desc} onChange={e => updateItem(idx, "desc", e.target.value)} rows={2} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 resize-y min-h-[38px]" placeholder="可輸入多行說明..." /></div>
+              <div className="col-span-3 md:col-span-1"><label className="text-xs text-gray-400 mb-1 block">數量</label><input type="number" min="1" value={item.qty} onChange={e => updateItem(idx, "qty", Number(e.target.value) || 1)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+              <div className="col-span-3 md:col-span-1"><label className="text-xs text-gray-400 mb-1 block">單位</label><select value={item.unit} onChange={e => updateItem(idx, "unit", e.target.value)} className="w-full px-1 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400">{UNITS.map(u => <option key={u} value={u}>{u}</option>)}</select></div>
+              <div className="col-span-4 md:col-span-2"><label className="text-xs text-gray-400 mb-1 block">單價</label><input type="number" min="0" value={item.price} onChange={e => updateItem(idx, "price", Number(e.target.value) || 0)} className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-right focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+              <div className="col-span-1 md:col-span-1 text-right"><label className="text-xs text-gray-400 mb-1 block">小計</label><div className="py-1.5 text-sm font-semibold text-gray-800">${fmt(item.qty * item.price)}</div></div>
+              <div className="col-span-1 md:col-span-1 flex items-end justify-center pb-0.5">{form.items.length > 1 && <button onClick={() => removeItem(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={15} /></button>}</div>
             </div>
           ))}
         </div>
@@ -750,7 +760,7 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
       </div>
 
       {/* Milestones */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><Milestone size={16} className="text-emerald-600" /> 專案期程</h2>
           <button onClick={addMilestone} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-semibold hover:bg-emerald-100"><Plus size={14} /> 新增里程碑</button>
@@ -758,11 +768,13 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
         {form.milestones.length === 0 ? <div className="text-center py-6 text-sm text-gray-400">尚未新增期程，點擊「新增里程碑」來規劃專案時程</div> : (
           <div className="space-y-3">
             {form.milestones.map((ms, idx) => (
-              <div key={ms.id} className="flex gap-3 items-start p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-                <div className="w-20 flex-shrink-0"><label className="text-xs text-gray-400 mb-1 block">週次</label><input value={ms.week} onChange={e => updateMilestone(idx, "week", e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center font-semibold text-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-                <div className="flex-1"><label className="text-xs text-gray-400 mb-1 block">里程碑標題</label><input value={ms.title} onChange={e => updateMilestone(idx, "title", e.target.value)} placeholder="例：需求確認與環境設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-                <div className="flex-1"><label className="text-xs text-gray-400 mb-1 block">工作項目（逗號分隔）</label><input value={ms.tasks} onChange={e => updateMilestone(idx, "tasks", e.target.value)} placeholder="例：需求訪談、LINE OA 設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-                <div className="flex items-end pb-0.5"><button onClick={() => removeMilestone(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={15} /></button></div>
+              <div key={ms.id} className="p-3 rounded-xl bg-gray-50/70 border border-gray-100">
+                <div className="flex gap-3 items-start mb-2">
+                  <div className="w-20 flex-shrink-0"><label className="text-xs text-gray-400 mb-1 block">週次</label><input value={ms.week} onChange={e => updateMilestone(idx, "week", e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center font-semibold text-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+                  <div className="flex-1"><label className="text-xs text-gray-400 mb-1 block">里程碑標題</label><input value={ms.title} onChange={e => updateMilestone(idx, "title", e.target.value)} placeholder="例：需求確認與環境設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
+                  <div className="flex items-end pb-0.5"><button onClick={() => removeMilestone(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={15} /></button></div>
+                </div>
+                <div><label className="text-xs text-gray-400 mb-1 block">工作項目（逗號分隔）</label><input value={ms.tasks} onChange={e => updateMilestone(idx, "tasks", e.target.value)} placeholder="例：需求訪談、LINE OA 設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
               </div>
             ))}
           </div>
@@ -770,19 +782,19 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
       </div>
 
       {/* Bank Info */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><Landmark size={16} className="text-emerald-600" /> 匯款資訊</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className={labelCls}>銀行名稱</label><input value={form.bankInfo?.bankName || ""} onChange={e => setBankField("bankName", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>銀行代碼</label><input value={form.bankInfo?.bankCode || ""} onChange={e => setBankField("bankCode", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>分行名稱</label><input value={form.bankInfo?.branchName || ""} onChange={e => setBankField("branchName", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>戶名</label><input value={form.bankInfo?.accountName || ""} onChange={e => setBankField("accountName", e.target.value)} className={inputCls} /></div>
-          <div className="col-span-2"><label className={labelCls}>帳號</label><input value={form.bankInfo?.accountNumber || ""} onChange={e => setBankField("accountNumber", e.target.value)} className={inputCls} placeholder="輸入匯款帳號" /></div>
+          <div className="col-span-1 sm:col-span-2"><label className={labelCls}>帳號</label><input value={form.bankInfo?.accountNumber || ""} onChange={e => setBankField("accountNumber", e.target.value)} className={inputCls} placeholder="輸入匯款帳號" /></div>
         </div>
       </div>
 
       {/* Notes */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><StickyNote size={16} className="text-emerald-600" /> 備註說明</h2>
           <div className="relative">
@@ -795,16 +807,16 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 justify-end">
-        <button onClick={onCancel} className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">取消</button>
-        <button onClick={() => handleSave(true)} className="px-5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">儲存草稿</button>
-        <button onClick={() => handleSave(false)} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}>{editing ? "儲存變更" : "建立並寄出"}</button>
+      <div className="flex flex-wrap items-center gap-3 justify-end">
+        <button onClick={onCancel} className="px-4 md:px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">取消</button>
+        <button onClick={() => handleSave(true)} className="px-4 md:px-5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">儲存草稿</button>
+        <button onClick={() => handleSave(false)} className="px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}>{editing ? "儲存變更" : "建立並寄出"}</button>
       </div>
 
       {/* Service Picker Modal */}
       {showServicePicker && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowServicePicker(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-[500px] max-h-[70vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-[90vw] max-w-[500px] max-h-[70vh] overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h3 className="font-bold text-gray-900">選擇服務項目</h3>
               <button onClick={() => setShowServicePicker(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600"><X size={18} /></button>
@@ -861,11 +873,11 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
   }, [quote, brand]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Controls - hidden when printing */}
-      <div className="flex items-center justify-between mb-5 print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 print:hidden">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"><ArrowLeft size={16} /> 返回列表</button>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border"><span className="text-xs text-gray-500">狀態：</span><StatusDropdown currentStatus={quote.status} onChange={(s) => updateQuoteStatus(quote.id, s)} /></div>
           <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"><Printer size={15} /> 列印 / PDF</button>
         </div>
@@ -898,8 +910,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </div>
         </div>
 
-        <div className="p-8">
-          <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="p-4 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
             <div>
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">客戶資訊 Client</h3>
               <p className="text-base font-bold text-gray-900 mb-1">{quote.clientName}</p>
@@ -921,7 +933,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </div>
           </div>
 
-          <table className="w-full mb-6 avoid-break" style={{ borderCollapse: "collapse" }}>
+          <div className="overflow-x-auto mb-6">
+          <table className="w-full min-w-[500px] avoid-break" style={{ borderCollapse: "collapse" }}>
             <thead><tr style={{ background: "#f0fdf4" }}>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "5%" }}>#</th>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "28%" }}>項目名稱</th>
@@ -945,6 +958,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
               ))}
             </tbody>
           </table>
+          </div>
 
           <div className="flex justify-end mb-8">
             <div className="w-72">
@@ -988,7 +1002,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           {bank.bankName && (
             <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
               <div className="flex items-center gap-2 mb-2"><Landmark size={14} className="text-blue-600" /><span className="text-xs font-bold text-blue-800">匯款資訊 Bank Transfer Info</span></div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
                 <div><span className="text-blue-500">銀行名稱：</span><span className="font-semibold text-blue-900">{bank.bankName}</span></div>
                 <div><span className="text-blue-500">銀行代碼：</span><span className="font-semibold text-blue-900">{bank.bankCode}</span></div>
                 <div><span className="text-blue-500">分行名稱：</span><span className="font-semibold text-blue-900">{bank.branchName}</span></div>
@@ -1008,7 +1022,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
           {/* Footer - Signature Section */}
           <div className="border-t border-gray-200 pt-6 mt-8">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">提案單位</h4>
                 <p className="text-sm font-bold text-gray-900">{brand.owner} | {brand.name}</p>
@@ -1065,25 +1079,25 @@ const CustomerList = ({ customers, setCustomers }) => {
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">客戶管理</h1>
+    <div className="p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">客戶管理</h1>
         <button onClick={() => { setEditingCustomer(null); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #059669, #34d399)" }}><Plus size={16} /> 新增客戶</button>
       </div>
       <div className="relative mb-5"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜尋客戶名稱、聯絡人、電話..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400" /></div>
       {showForm && <CustomerForm customer={editingCustomer} onSave={handleSave} onCancel={() => { setShowForm(false); setEditingCustomer(null); }} />}
       {filtered.length === 0 ? <EmptyState icon={Users} title="尚無客戶" desc="新增你的第一位客戶" action="新增客戶" onAction={() => setShowForm(true)} /> : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map(c => (
-            <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+            <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center"><Building2 size={18} className="text-emerald-600" /></div>
+                  <div className="w-10 h-10 flex-shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center"><Building2 size={18} className="text-emerald-600" /></div>
                   <div><h3 className="text-sm font-bold text-gray-900">{c.name}</h3><p className="text-xs text-gray-400">{c.id} · {c.contact}</p></div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => { setEditingCustomer(c); setShowForm(true); }} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600"><Edit3 size={14} /></button>
-                  <button onClick={() => setCustomers(prev => prev.filter(x => x.id !== c.id))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
+                  <button onClick={() => { setEditingCustomer(c); setShowForm(true); }} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600"><Edit3 size={14} /></button>
+                  <button onClick={() => setCustomers(prev => prev.filter(x => x.id !== c.id))} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
                 </div>
               </div>
               <div className="space-y-1.5 text-xs text-gray-500">
@@ -1108,14 +1122,14 @@ const CustomerForm = ({ customer, onSave, onCancel }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
       <h3 className="text-sm font-bold text-gray-800 mb-4">{customer ? "編輯客戶" : "新增客戶"}</h3>
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <input value={form.name} onChange={e => setF("name", e.target.value)} placeholder="公司/客戶名稱 *" className={inputCls} />
         <input value={form.contact} onChange={e => setF("contact", e.target.value)} placeholder="聯絡人" className={inputCls} />
         <input value={form.phone} onChange={e => setF("phone", e.target.value)} placeholder="電話" className={inputCls} />
         <input value={form.email} onChange={e => setF("email", e.target.value)} placeholder="Email" className={inputCls} />
         <input value={form.taxId} onChange={e => setF("taxId", e.target.value)} placeholder="統一編號" className={inputCls} />
         <input value={form.address} onChange={e => setF("address", e.target.value)} placeholder="地址" className={inputCls} />
-        <input value={form.notes} onChange={e => setF("notes", e.target.value)} placeholder="備註" className={`${inputCls} col-span-2`} />
+        <input value={form.notes} onChange={e => setF("notes", e.target.value)} placeholder="備註" className={`${inputCls} col-span-1 sm:col-span-2`} />
       </div>
       <div className="flex gap-2 justify-end">
         <button onClick={onCancel} className="px-4 py-2 rounded-lg border text-sm text-gray-600 hover:bg-gray-50">取消</button>
@@ -1154,9 +1168,9 @@ const ServicesPage = ({ services, setServices }) => {
   };
 
   return (
-    <div className="p-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">服務產品庫</h1>
-      <p className="text-sm text-gray-500 mb-8">管理常用服務項目，建立報價單時可快速選用</p>
+    <div className="p-4 md:p-8 max-w-4xl">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">服務產品庫</h1>
+      <p className="text-sm text-gray-500 mb-6 md:mb-8">管理常用服務項目，建立報價單時可快速選用</p>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         {/* 服務列表 */}
@@ -1188,13 +1202,13 @@ const ServicesPage = ({ services, setServices }) => {
         <div className="border-t border-gray-100 pt-5">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">新增服務項目</h4>
           <div className="grid grid-cols-12 gap-3">
-            <input value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} placeholder="服務名稱 *" className={`${inputCls} col-span-3`} />
-            <input value={newService.desc} onChange={e => setNewService(p => ({ ...p, desc: e.target.value }))} placeholder="說明" className={`${inputCls} col-span-4`} />
-            <select value={newService.unit} onChange={e => setNewService(p => ({ ...p, unit: e.target.value }))} className={`${inputCls} col-span-2`}>
+            <input value={newService.name} onChange={e => setNewService(p => ({ ...p, name: e.target.value }))} placeholder="服務名稱 *" className={`${inputCls} col-span-12 md:col-span-3`} />
+            <input value={newService.desc} onChange={e => setNewService(p => ({ ...p, desc: e.target.value }))} placeholder="說明" className={`${inputCls} col-span-12 md:col-span-4`} />
+            <select value={newService.unit} onChange={e => setNewService(p => ({ ...p, unit: e.target.value }))} className={`${inputCls} col-span-5 md:col-span-2`}>
               {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
             </select>
-            <input type="number" value={newService.price || ""} onChange={e => setNewService(p => ({ ...p, price: Number(e.target.value) || 0 }))} placeholder="單價 *" className={`${inputCls} col-span-2 text-right`} />
-            <button onClick={addService} disabled={!newService.name || newService.price <= 0} className="col-span-1 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+            <input type="number" value={newService.price || ""} onChange={e => setNewService(p => ({ ...p, price: Number(e.target.value) || 0 }))} placeholder="單價 *" className={`${inputCls} col-span-5 md:col-span-2 text-right`} />
+            <button onClick={addService} disabled={!newService.name || newService.price <= 0} className="col-span-2 md:col-span-1 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
               <Plus size={16} />
             </button>
           </div>
@@ -1234,9 +1248,9 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
   const inputClsN = "w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400";
 
   return (
-    <div className="p-8 w-full max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
-      <p className="text-sm text-gray-500 mb-8">管理公司資訊、匯款資訊與備註模板</p>
+    <div className="p-4 md:p-8 w-full max-w-7xl mx-auto">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">系統設定</h1>
+      <p className="text-sm text-gray-500 mb-6 md:mb-8">管理公司資訊、匯款資訊與備註模板</p>
 
       {/* Migration Tool */}
       <DataMigration />
@@ -1245,7 +1259,7 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Building2 size={16} className="text-emerald-600" /> 公司資訊</h2>
         <p className="text-xs text-gray-400 mb-5">此資訊將顯示在報價單和列印輸出中</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">公司名稱</label><input value={brand.name} onChange={e => setBrand(p => ({ ...p, name: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">負責人</label><input value={brand.owner} onChange={e => setBrand(p => ({ ...p, owner: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Email</label><input type="email" value={brand.email} onChange={e => setBrand(p => ({ ...p, email: e.target.value }))} className={inputClsN} /></div>
@@ -1261,12 +1275,12 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Landmark size={16} className="text-emerald-600" /> 預設匯款資訊</h2>
         <p className="text-xs text-gray-400 mb-5">新建報價單時會自動帶入這組預設匯款資訊</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">銀行名稱</label><input value={bankInfo.bankName} onChange={e => setBankInfo(p => ({ ...p, bankName: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">銀行代碼</label><input value={bankInfo.bankCode} onChange={e => setBankInfo(p => ({ ...p, bankCode: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">分行名稱</label><input value={bankInfo.branchName} onChange={e => setBankInfo(p => ({ ...p, branchName: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">戶名</label><input value={bankInfo.accountName} onChange={e => setBankInfo(p => ({ ...p, accountName: e.target.value }))} className={inputClsN} /></div>
-          <div className="col-span-2"><label className="block text-xs font-semibold text-gray-600 mb-1">帳號</label><input value={bankInfo.accountNumber} onChange={e => setBankInfo(p => ({ ...p, accountNumber: e.target.value }))} className={inputClsN} placeholder="輸入匯款帳號" /></div>
+          <div className="col-span-1 sm:col-span-2"><label className="block text-xs font-semibold text-gray-600 mb-1">帳號</label><input value={bankInfo.accountNumber} onChange={e => setBankInfo(p => ({ ...p, accountNumber: e.target.value }))} className={inputClsN} placeholder="輸入匯款帳號" /></div>
         </div>
       </div>
 
@@ -1336,7 +1350,7 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
       {/* Contact - 顯示目前設定的公司資訊 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><MessageCircle size={16} className="text-emerald-600" /> 目前聯絡資訊（唯讀）</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="space-y-2"><p><span className="text-gray-500">負責人：</span><span className="font-semibold">{brand.owner}</span></p><p><span className="text-gray-500">Email：</span>{brand.email}</p><p><span className="text-gray-500">電話：</span>{brand.phone}</p></div>
           <div className="space-y-2"><p><span className="text-gray-500">網站：</span><a href={brand.website} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{brand.website}</a></p><p><span className="text-gray-500">Threads：</span><a href={brand.threads} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">{brand.threadsHandle}</a></p><p><span className="text-gray-500">LINE 社群：</span><a href={brand.lineGroup} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">加入社群</a></p></div>
         </div>
@@ -1357,6 +1371,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [toast, setToast] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -1570,26 +1585,35 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:overflow-visible print:bg-white" style={{ fontFamily: "'Noto Sans TC', -apple-system, sans-serif" }}>
-      <Sidebar page={page} setPage={setPage} quoteCount={quotes.length} brand={brand} />
-      <main className="flex-1 overflow-y-auto relative print:overflow-visible print:w-full">
-        {renderPage()}
-        {/* Syncing 指示器 */}
-        {syncing && (
-          <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-lg border border-gray-200 z-50 print:hidden">
-            <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-gray-600">同步中...</span>
-          </div>
-        )}
+      <Sidebar page={page} setPage={setPage} quoteCount={quotes.length} brand={brand} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile top header */}
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 print:hidden flex-shrink-0">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+            <Menu size={20} />
+          </button>
+          <div className="font-bold text-gray-900 text-sm">ZN Studio 報價系統</div>
+        </header>
+        <main className="flex-1 overflow-y-auto relative print:overflow-visible print:w-full">
+          {renderPage()}
+          {/* Syncing 指示器 */}
+          {syncing && (
+            <div className="fixed bottom-4 right-4 flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-lg border border-gray-200 z-50 print:hidden">
+              <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm text-gray-600">同步中...</span>
+            </div>
+          )}
 
-        {/* Toast Notification */}
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={closeToast}
-          />
-        )}
-      </main>
+          {/* Toast Notification */}
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={closeToast}
+            />
+          )}
+        </main>
+      </div>
     </div>
   );
 }
