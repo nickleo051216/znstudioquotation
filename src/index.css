@@ -32,6 +32,14 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
+  /* Push every page's content area below the fixed header */
+  @page {
+    margin-top: 54px;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
   /* Preserve colors */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -119,9 +127,9 @@ th {
     z-index: 100;
   }
 
-  /* Offset content so it doesn't hide behind the fixed header */
+  /* No extra padding needed — @page margin-top handles all pages */
   .print-body-offset {
-    padding-top: 52px !important;
+    padding-top: 0 !important;
   }
 }
 
