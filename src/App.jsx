@@ -273,6 +273,15 @@ const STATUS_CONFIG = {
   expired: { label: "已過期", color: "bg-amber-100 text-amber-700", dot: "bg-amber-500", icon: Clock },
 };
 
+const PAYMENT_TERMS_OPTIONS = [
+  "14天匯款",
+  "30天匯款",
+  "簽約 50% / 完成 50%",
+  "簽約 40% / 驗收 30% / 上線 30%",
+  "驗收後30天匯款",
+  "自訂...",
+];
+
 const PROJECT_TYPES = [
   "LINE OA 智慧客服系統",
   "n8n 自動化流程建置",
@@ -657,7 +666,7 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
     items: [{ id: genId(), name: "", desc: "", qty: 1, unit: "式", price: 0 }],
     milestones: [],
     taxRate: 5, notes: "", status: "draft", createdAt: today(), validUntil: "",
-    paymentTerms: "簽約 40% / 驗收 30% / 上線 30%",
+    paymentTerms: "14天匯款",
     bankInfo: { ...bankInfo },
   });
   const [showNotesPicker, setShowNotesPicker] = useState(false);
@@ -723,7 +732,19 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
           <div><label className={labelCls}>專案類型</label><select value={form.projectType} onChange={e => setField("projectType", e.target.value)} className={inputCls}>{PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
           <div><label className={labelCls}>建立日期</label><input type="date" value={form.createdAt} onChange={e => setField("createdAt", e.target.value)} className={inputCls} /></div>
           <div><label className={labelCls}>報價有效至</label><input type="date" value={form.validUntil} onChange={e => setField("validUntil", e.target.value)} className={inputCls} /></div>
-          <div className="col-span-1 sm:col-span-2"><label className={labelCls}>付款條件</label><input value={form.paymentTerms} onChange={e => setField("paymentTerms", e.target.value)} className={inputCls} /></div>
+          <div className="col-span-1 sm:col-span-2">
+            <label className={labelCls}>付款條件</label>
+            <select
+              value={PAYMENT_TERMS_OPTIONS.includes(form.paymentTerms) ? form.paymentTerms : "自訂..."}
+              onChange={e => { if (e.target.value !== "自訂...") setField("paymentTerms", e.target.value); else setField("paymentTerms", ""); }}
+              className={inputCls + " mb-2"}
+            >
+              {PAYMENT_TERMS_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+            {(!PAYMENT_TERMS_OPTIONS.includes(form.paymentTerms) || form.paymentTerms === "") && (
+              <input value={form.paymentTerms} onChange={e => setField("paymentTerms", e.target.value)} className={inputCls} placeholder="請輸入自訂付款條件" />
+            )}
+          </div>
         </div>
       </div>
 
