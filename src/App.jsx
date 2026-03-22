@@ -913,7 +913,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
         <div className="p-4 md:p-8">
           {/* ── Row 1: My info (left) + Quote details (right) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-3">
+          <div className="grid grid-cols-2 gap-4 mb-3">
             <div>
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">接案單位 Provider</h3>
               <p className="text-lg font-bold text-gray-900 mb-0.5">{brand.owner}</p>
@@ -939,7 +939,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           {/* ── Row 2: Customer info (full width) ── */}
           <div className="border border-gray-200 rounded-xl p-3 mb-6">
             <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">客戶資料 Customer</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0.5 text-sm">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-0.5 text-sm">
               <p className="text-base font-bold text-gray-900 col-span-2">{quote.clientName}</p>
               {quote.clientContact && <p className="text-gray-600">聯絡人：{quote.clientContact}</p>}
               {quote.clientPhone && <p className="text-gray-500">電話：{quote.clientPhone}</p>}
