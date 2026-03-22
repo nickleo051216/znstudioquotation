@@ -912,14 +912,17 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
         </div>
 
         <div className="p-4 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
+          {/* ── Row 1: My info (left) + Quote details (right) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-6">
             <div>
-              <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">客戶資訊 Client</h3>
-              <p className="text-base font-bold text-gray-900 mb-1">{quote.clientName}</p>
-              <p className="text-sm text-gray-600">{quote.clientContact}</p>
-              {quote.clientPhone && <p className="text-sm text-gray-500">{quote.clientPhone}</p>}
-              {quote.clientEmail && <p className="text-sm text-gray-500">{quote.clientEmail}</p>}
-              {quote.clientAddress && <p className="text-sm text-gray-500 mt-1">{quote.clientAddress}</p>}
+              <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">接案單位 Provider</h3>
+              <p className="text-lg font-bold text-gray-900 mb-0.5">{brand.owner}</p>
+              <p className="text-sm font-semibold text-gray-600 mb-3">{brand.name}</p>
+              <div className="space-y-1 text-xs text-gray-500">
+                <p>📧 {brand.email}</p>
+                <p>📱 {brand.phone}</p>
+                <p>🌐 {brand.websiteDisplay}</p>
+              </div>
             </div>
             <div className="text-right">
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">報價資訊 Details</h3>
@@ -928,9 +931,20 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                 <div><span className="text-gray-500">專案名稱：</span><span className="font-semibold text-gray-900">{quote.projectName}</span></div>
                 <div><span className="text-gray-500">報價日期：</span><span>{quote.createdAt}</span></div>
                 {quote.validUntil && <div><span className="text-gray-500">有效期限：</span><span>{quote.validUntil}</span></div>}
-                {/* Status Badge - hidden when printing */}
                 <div className="mt-2 print:hidden"><StatusBadge status={quote.status} /></div>
               </div>
+            </div>
+          </div>
+
+          {/* ── Row 2: Customer info (full width) ── */}
+          <div className="border border-gray-200 rounded-xl p-4 mb-8">
+            <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">客戶資料 Customer</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-sm">
+              <p className="text-base font-bold text-gray-900 col-span-2 mb-1">{quote.clientName}</p>
+              {quote.clientContact && <p className="text-gray-600">聯絡人：{quote.clientContact}</p>}
+              {quote.clientPhone && <p className="text-gray-500">電話：{quote.clientPhone}</p>}
+              {quote.clientEmail && <p className="text-gray-500 col-span-2">Email：{quote.clientEmail}</p>}
+              {quote.clientAddress && <p className="text-gray-500 col-span-2">地址：{quote.clientAddress}</p>}
             </div>
           </div>
 
@@ -1023,16 +1037,18 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
           {/* Footer - Signature Section */}
           <div className="border-t border-gray-200 pt-6 mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-8">
               <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">接案單位</h4>
-                <p className="text-sm font-bold text-gray-900">{brand.owner}｜{brand.name}</p>
-                <div className="mt-2 space-y-1 text-xs text-gray-500">
-                  <p>📧 {brand.email}</p><p>📱 {brand.phone}</p><p>🌐 {brand.website}</p>
-                  <p className="print:hidden">💬 Threads: {brand.threadsHandle}</p><p className="print:hidden">👥 LINE 社群: {brand.lineGroup}</p><p className="print:hidden">💼 LINE: {brand.lineOA}</p>
-                </div>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">接案單位（簽章）</h4>
+                <p className="text-sm font-semibold text-gray-700 mb-14">{brand.owner}｜{brand.name}</p>
+                <div className="border-b-2 border-gray-300 mb-2" />
+                <p className="text-xs text-gray-400">簽名 / 日期</p>
               </div>
-              <div><h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶簽章</h4><div className="border-b-2 border-gray-300 mt-16 mb-2" /><p className="text-xs text-gray-400">簽名 / 日期</p></div>
+              <div>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶確認簽回（簽章）</h4>
+                <div className="border-b-2 border-gray-300 mt-16 mb-2" />
+                <p className="text-xs text-gray-400">簽名 / 日期</p>
+              </div>
             </div>
           </div>
         </div>
