@@ -887,8 +887,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
       {/* Printable Quote Container */}
       <div id="printable-quote" className="quote-container bg-white rounded-2xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
 
-        {/* ═══════════ Print Header Bar (only visible when printing) ═══════════ */}
-        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
+        {/* ═══════════ Print Header Bar (repeats on every page) ═══════════ */}
+        <div className="print-only print-page-header hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
             <span className="text-white font-bold text-sm">{brand.name}</span>
@@ -911,7 +911,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </div>
         </div>
 
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 print-body-offset">
           {/* ── Row 1: My info (left) + Quote details (right) ── */}
           <div className="grid grid-cols-2 gap-4 mb-3">
             <div>
@@ -1039,10 +1039,15 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           <div className="border-t border-gray-200 pt-4 mt-6">
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">接案單位（簽章）</h4>
-                <p className="text-sm font-semibold text-gray-700 mb-14">{brand.owner}｜{brand.name}</p>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">接案單位（簽章）</h4>
+                <p className="text-sm font-semibold text-gray-700 mb-1">{brand.owner}｜{brand.name}</p>
+                <div className="space-y-0.5 text-xs text-gray-500 mb-8">
+                  <p>{brand.email}</p>
+                  <p>{brand.phone}</p>
+                  <p>{brand.websiteDisplay}</p>
+                </div>
                 <div className="border-b-2 border-gray-300 mb-2" />
-                <p className="text-xs text-gray-400">簽名 / 日期</p>
+                <p className="text-xs text-gray-400">簽名 / 日期：{new Date().toLocaleDateString('zh-TW')}</p>
               </div>
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶確認簽回（簽章）</h4>
