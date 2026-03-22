@@ -913,7 +913,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
         <div className="p-4 md:p-8">
           {/* ── Row 1: My info (left) + Quote details (right) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-3">
             <div>
               <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-3">接案單位 Provider</h3>
               <p className="text-lg font-bold text-gray-900 mb-0.5">{brand.owner}</p>
@@ -949,7 +949,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </div>
 
           <div className="overflow-x-auto mb-6">
-          <table className="w-full min-w-[500px] avoid-break" style={{ borderCollapse: "collapse" }}>
+          <table className="w-full min-w-[500px]" style={{ borderCollapse: "collapse" }}>
             <thead><tr style={{ background: "#f0fdf4" }}>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "5%" }}>#</th>
               <th className="text-left px-4 py-3 text-xs font-bold text-emerald-800 border-b-2 border-emerald-200" style={{ width: "28%" }}>項目名稱</th>
