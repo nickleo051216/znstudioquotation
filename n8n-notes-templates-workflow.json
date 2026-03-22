@@ -1,0 +1,194 @@
+{
+    "name": "ZN Quotation - Notes Templates Sync",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "read-notes-templates",
+                "responseMode": "responseNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "webhook-read",
+            "name": "Read Notes Templates",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                300
+            ],
+            "webhookId": "read-notes-templates"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "write-note-template",
+                "responseMode": "responseNode",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "webhook-write",
+            "name": "Write Note Template",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                260,
+                540
+            ],
+            "webhookId": "write-note-template"
+        },
+        {
+            "parameters": {
+                "method": "GET",
+                "url": "https://script.google.com/macros/s/AKfycbwxx70u7H4a20O1PffVCYSi_N_1e9XjUck6ie97M6-MhAXz5XfhYbXkuz8v3qhqaWco/exec",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "value": "read_notes_templates"
+                        }
+                    ]
+                },
+                "options": {
+                    "redirect": {
+                        "redirect": {
+                            "followRedirects": true
+                        }
+                    }
+                }
+            },
+            "id": "http-read",
+            "name": "GET from GAS",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                480,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://script.google.com/macros/s/AKfycbwxx70u7H4a20O1PffVCYSi_N_1e9XjUck6ie97M6-MhAXz5XfhYbXkuz8v3qhqaWco/exec",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify($json) }}",
+                "options": {
+                    "redirect": {
+                        "redirect": {
+                            "followRedirects": true
+                        }
+                    }
+                }
+            },
+            "id": "http-write",
+            "name": "POST to GAS",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                480,
+                540
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-read",
+            "name": "Respond Read",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {}
+            },
+            "id": "respond-write",
+            "name": "Respond Write",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                700,
+                540
+            ]
+        }
+    ],
+    "connections": {
+        "Read Notes Templates": {
+            "main": [
+                [
+                    {
+                        "node": "GET from GAS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GET from GAS": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Read",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write Note Template": {
+            "main": [
+                [
+                    {
+                        "node": "POST to GAS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "POST to GAS": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Write",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [],
+    "triggerCount": 0,
+    "pinData": {}
+}
