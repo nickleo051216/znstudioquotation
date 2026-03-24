@@ -306,6 +306,7 @@ const DEFAULT_NOTES_TEMPLATES = [
   { id: "n7", label: "報價有效期", text: "本報價單自發出日起 30 天內有效，逾期需重新報價。" },
   { id: "n8", label: "智慧財產權", text: "專案完成後，所有客製化開發之程式碼與工作流程歸業主所有。ZN Studio 保留將通用技術方案用於其他專案之權利。" },
   { id: "n9", label: "付款期限 14 天", text: "請於雙方確認報價單後 14 天內完成匯款，逾期視為取消委託。" },
+  { id: "n10", label: "付款方式 50/50", text: "付款方式：簽約時支付 50%，系統驗收完成後 7 個工作日內支付餘款 50%。逾期未付視為違約，ZN Studio 保留暫停服務之權利。" },
 ];
 
 // ─── Sample Data ───
@@ -653,7 +654,7 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
     clientPhone: "", clientEmail: "", clientAddress: "", projectName: "", projectType: PROJECT_TYPES[0],
     items: [{ id: genId(), name: "", desc: "", qty: 1, unit: "式", price: 0 }],
     taxRate: 5, notes: "", status: "draft", createdAt: today(), validUntil: "",
-    paymentTerms: "14天匯款",
+    paymentTerms: "簽約 50% / 完成 50%",
     bankInfo: { ...bankInfo },
   });
   const [showNotesPicker, setShowNotesPicker] = useState(false);
