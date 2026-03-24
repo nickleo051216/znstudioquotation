@@ -982,7 +982,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </tr></thead>
             <tbody>
               {quote.items.map((item, idx) => (
-                <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb", breakInside: "avoid", pageBreakInside: "avoid" }}>
                   <td className="px-4 py-3 text-sm text-gray-500">{idx + 1}</td>
                   <td className="px-4 py-3 text-sm font-semibold text-gray-900">{item.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{item.desc}</td>
