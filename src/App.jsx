@@ -6,7 +6,7 @@ import {
   Download, Printer, Phone, Mail, Globe, MessageCircle, ArrowLeft,
   TrendingUp, DollarSign, Clock, CheckCircle, XCircle, Filter, MoreVertical,
   Building2, Hash, MapPin, Calendar, CreditCard, Zap, ExternalLink,
-  Landmark, Milestone, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package, Menu
+  Landmark, BookOpen, ChevronUp, StickyNote, AlertTriangle, Package, Menu
 } from "lucide-react";
 import DataMigration from "./components/DataMigration"; // Import Migration Tool
 
@@ -326,12 +326,6 @@ const SAMPLE_QUOTES = [
       { id: "I3", name: "AI 知識庫訓練", desc: "Prompt Engineering、商品資料庫、防幻覺機制", qty: 1, unit: "式", price: 15000 },
       { id: "I4", name: "教育訓練", desc: "2小時線上或實體教育訓練", qty: 2, unit: "小時", price: 5000 },
     ],
-    milestones: [
-      { id: "m1", week: "Week 1", title: "需求確認與環境設定", tasks: "深度需求訪談、LINE OA 環境設定、商品資料庫建立" },
-      { id: "m2", week: "Week 2", title: "AI 訓練與流程開發", tasks: "Prompt 設計、意圖識別建置、n8n 流程開發" },
-      { id: "m3", week: "Week 3", title: "功能整合與測試", tasks: "訂單系統串接、真人客服轉接、壓力測試" },
-      { id: "m4", week: "Week 4", title: "驗收、上線與教學", tasks: "UAT 測試、正式上線、操作手冊交付" },
-    ],
     taxRate: 5,
     notes: "第三方費用（LINE OA 月費、Zeabur 託管費、AI API 費用）由業主信用卡實報實銷，不包含於上述報價中。",
     status: "sent",
@@ -347,11 +341,6 @@ const SAMPLE_QUOTES = [
       { id: "I1", name: "LINE OA 機器人開發", desc: "自動接單、花束推薦、預約系統", qty: 1, unit: "套", price: 35000 },
       { id: "I2", name: "Google Sheets 訂單系統", desc: "自動記錄訂單、庫存管理", qty: 1, unit: "式", price: 12000 },
     ],
-    milestones: [
-      { id: "m1", week: "Week 1", title: "需求訪談與架構設計", tasks: "功能確認、花束品項整理" },
-      { id: "m2", week: "Week 2", title: "開發與測試", tasks: "機器人開發、訂單系統串接" },
-      { id: "m3", week: "Week 3", title: "驗收上線", tasks: "UAT、正式上線、教育訓練" },
-    ],
     taxRate: 5, notes: "", status: "accepted",
     createdAt: "2026-01-20", validUntil: "2026-02-20",
     paymentTerms: "簽約 50% / 完成 50%",
@@ -366,7 +355,6 @@ const SAMPLE_QUOTES = [
       { id: "I2", name: "LINE OA 串接", desc: "員工通知、客戶行銷", qty: 1, unit: "式", price: 18000 },
       { id: "I3", name: "月維護方案", desc: "系統監控、Bug 修復、每月報告", qty: 3, unit: "月", price: 8000 },
     ],
-    milestones: [],
     taxRate: 5, notes: "含 3 個月免費維護", status: "draft",
     createdAt: "2026-02-01", validUntil: "2026-03-01",
     paymentTerms: "簽約 40% / 驗收 30% / 上線 30%",
@@ -664,7 +652,6 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
     id: genId(), quoteNumber: genQuoteNumber(quotes, brand?.prefix || "ZN"), customerId: "", clientName: "", clientContact: "",
     clientPhone: "", clientEmail: "", clientAddress: "", projectName: "", projectType: PROJECT_TYPES[0],
     items: [{ id: genId(), name: "", desc: "", qty: 1, unit: "式", price: 0 }],
-    milestones: [],
     taxRate: 5, notes: "", status: "draft", createdAt: today(), validUntil: "",
     paymentTerms: "14天匯款",
     bankInfo: { ...bankInfo },
@@ -688,9 +675,6 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
     setShowServicePicker(false);
   };
 
-  const updateMilestone = (idx, k, v) => { const ms = [...form.milestones]; ms[idx] = { ...ms[idx], [k]: v }; setForm(prev => ({ ...prev, milestones: ms })); };
-  const addMilestone = () => setForm(prev => ({ ...prev, milestones: [...prev.milestones, { id: genId(), week: `Week ${prev.milestones.length + 1}`, title: "", tasks: "" }] }));
-  const removeMilestone = (idx) => setForm(prev => ({ ...prev, milestones: prev.milestones.filter((_, i) => i !== idx) }));
 
   const appendNote = (text) => setForm(prev => ({ ...prev, notes: prev.notes ? prev.notes + "\n" + text : text }));
 
@@ -779,28 +763,6 @@ const QuoteForm = ({ editing, customers, quotes, notesTemplates, bankInfo, onSav
             <div className="flex justify-between text-lg font-bold text-emerald-700 border-t border-gray-200 pt-2"><span>總計</span><span>${fmt(total)}</span></div>
           </div>
         </div>
-      </div>
-
-      {/* Milestones */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><Milestone size={16} className="text-emerald-600" /> 專案期程</h2>
-          <button onClick={addMilestone} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-semibold hover:bg-emerald-100"><Plus size={14} /> 新增里程碑</button>
-        </div>
-        {form.milestones.length === 0 ? <div className="text-center py-6 text-sm text-gray-400">尚未新增期程，點擊「新增里程碑」來規劃專案時程</div> : (
-          <div className="space-y-3">
-            {form.milestones.map((ms, idx) => (
-              <div key={ms.id} className="p-3 rounded-xl bg-gray-50/70 border border-gray-100">
-                <div className="flex gap-3 items-start mb-2">
-                  <div className="w-20 flex-shrink-0"><label className="text-xs text-gray-400 mb-1 block">週次</label><input value={ms.week} onChange={e => updateMilestone(idx, "week", e.target.value)} className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center font-semibold text-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-                  <div className="flex-1"><label className="text-xs text-gray-400 mb-1 block">里程碑標題</label><input value={ms.title} onChange={e => updateMilestone(idx, "title", e.target.value)} placeholder="例：需求確認與環境設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-                  <div className="flex items-end pb-0.5"><button onClick={() => removeMilestone(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400"><X size={15} /></button></div>
-                </div>
-                <div><label className="text-xs text-gray-400 mb-1 block">工作項目（逗號分隔）</label><input value={ms.tasks} onChange={e => updateMilestone(idx, "tasks", e.target.value)} placeholder="例：需求訪談、LINE OA 設定" className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400" /></div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Bank Info */}
@@ -995,28 +957,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </tbody>
           </table>
           </div>
-
-          {/* Milestones — page 1 */}
-          {quote.milestones && quote.milestones.length > 0 && (
-            <div className="mb-8 avoid-break">
-              <h3 className="flex items-center gap-2 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4"><Calendar size={14} /> 專案期程 Project Timeline</h3>
-              <div className="relative">
-                <div className="absolute left-[39px] top-2 bottom-2 w-0.5 bg-emerald-200 rounded-full" />
-                <div className="space-y-4">
-                  {quote.milestones.map((ms) => (
-                    <div key={ms.id} className="flex gap-4 items-start">
-                      <div className="w-20 flex-shrink-0 text-right"><span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">{ms.week}</span></div>
-                      <div className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm mt-1 flex-shrink-0 relative z-10" />
-                      <div className="flex-1 pb-2">
-                        <p className="text-sm font-semibold text-gray-900">{ms.title}</p>
-                        {ms.tasks && <div className="flex flex-wrap gap-1.5 mt-1.5">{ms.tasks.split(/[,、，]/).map((task, ti) => <span key={ti} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">✓ {task.trim()}</span>)}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* ── PAGE 2: Payment / Bank / Notes / Total / Signature ── */}
           <div style={{ pageBreakBefore: "always" }}>
@@ -1583,7 +1523,6 @@ export default function App() {
       history: undefined, // 不複製版本歷史
       // 複製項目內容但給予新的 ID，確保完全獨立
       items: cloned.items.map(item => ({ ...item, id: genId() })),
-      milestones: cloned.milestones.map(ms => ({ ...ms, id: genId() })),
     };
     setEditingQuote(newQuote);
     setPage("new-quote");
