@@ -959,8 +959,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </table>
           </div>
 
-          {/* ── PAGE 2: Payment / Bank / Notes / Total / Signature ── */}
-          <div style={{ pageBreakBefore: "always" }}>
+          {/* ── Payment / Bank / Notes / Total / Signature ── */}
+          <div style={{ breakInside: "avoid" }}>
 
           {/* Header bar repeated on page 2 */}
           <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200 mb-4" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
