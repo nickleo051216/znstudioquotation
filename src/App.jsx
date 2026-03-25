@@ -873,7 +873,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
       <div id="printable-quote" className="quote-container bg-white rounded-2xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
 
         {/* ═══════════ Print Header Bar (repeats on every page) ═══════════ */}
-        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
+        <div className="print-only print-fixed-header hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
             <span className="text-white font-bold text-sm">{brand.name}</span>
@@ -962,19 +962,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
           {/* ── Payment / Bank / Notes / Total / Signature ── */}
           <div style={{ breakInside: "avoid" }}>
-
-          {/* Header bar repeated on page 2 */}
-          <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200 mb-4" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
-              <span className="text-white font-bold text-sm">{brand.name}</span>
-            </div>
-            <div className="flex items-center gap-4 text-white text-xs">
-              <span>報價單號：<strong className="font-mono">{quote.quoteNumber}</strong></span>
-              <span>{quote.createdAt}</span>
-              <span className="px-2 py-1 bg-white/20 rounded font-bold">NT$ {fmt(total)}</span>
-            </div>
-          </div>
 
           {/* Payment + Bank — two columns on page 2 */}
           <div className="grid grid-cols-2 gap-4 mb-4">
