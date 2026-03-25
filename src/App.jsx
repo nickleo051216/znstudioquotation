@@ -33,6 +33,7 @@ const DEFAULT_SERVICES = [
   { id: "s4", name: "教育訓練", desc: "線上或實體教育訓練", unit: "小時", price: 2500 },
   { id: "s5", name: "LINE OA 智慧客服", desc: "LINE Official Account 自動回覆設定", unit: "式", price: 20000 },
   { id: "s6", name: "報表自動化", desc: "Google Sheets 報表自動產生、通知", unit: "式", price: 12000 },
+  { id: "s7", name: "不動產實價登錄地圖系統", desc: "實價登錄資料整合、地籍圖 WMTS 圖層、互動地圖標記、區域統計、AI 分析報告", unit: "式", price: 4000 },
 ];
 
 // ─── Firebase Imports ───
