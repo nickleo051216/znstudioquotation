@@ -1444,6 +1444,26 @@ export default function App() {
         const exists = prev.find(q => q.id === quote.id);
         return exists ? prev.map(q => q.id === quote.id ? quote : q) : [...prev, quote];
       });
+      // 自動同步客戶到客戶資料庫
+      if (quote.clientName) {
+        const existingCustomer = customers.find(c => c.name === quote.clientName);
+        if (!existingCustomer) {
+          const newCustomer = {
+            id: `C${Date.now()}`,
+            name: quote.clientName || '',
+            contact: quote.clientContact || '',
+            phone: quote.clientPhone || '',
+            email: quote.clientEmail || '',
+            address: quote.clientAddress || '',
+            notes: '',
+            taxId: '',
+            createdAt: new Date().toISOString().split('T')[0],
+          };
+          await api.saveCustomer(newCustomer);
+          setCustomers(prev => [...prev, newCustomer]);
+          console.log("Auto-synced new customer:", quote.clientName);
+        }
+      }
       // 同步到 n8n
       const res = await api.saveQuote(quote);
       if (res.success) {
