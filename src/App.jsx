@@ -315,6 +315,7 @@ const SAMPLE_CUSTOMERS = [
   { id: "C001", name: "蔬食8", contact: "王老闆", phone: "0912-345-678", email: "veg8@example.com", address: "台北市信義區信義路五段7號", taxId: "12345678", notes: "素食品牌，LINE OA 專案", createdAt: "2026-01-15" },
   { id: "C002", name: "好日子花藝", contact: "林小姐", phone: "0923-456-789", email: "flora@example.com", address: "台北市大安區忠孝東路四段", taxId: "23456789", notes: "花藝工作室", createdAt: "2026-01-20" },
   { id: "C003", name: "晨光咖啡", contact: "陳先生", phone: "0934-567-890", email: "dawn@example.com", address: "新北市板橋區文化路一段", taxId: "34567890", notes: "連鎖咖啡品牌", createdAt: "2026-01-25" },
+  { id: "C004", name: "CHRIS 影音", contact: "CHRIS", phone: "", email: "", address: "", taxId: "", notes: "短影音自媒體策略；LINE 設備提醒自動化系統", createdAt: "2026-04-21" },
 ];
 
 const SAMPLE_QUOTES = [
@@ -360,6 +361,24 @@ const SAMPLE_QUOTES = [
     taxRate: 5, notes: "含 3 個月免費維護", status: "draft",
     createdAt: "2026-02-01", validUntil: "2026-03-01",
     paymentTerms: "簽約 40% / 驗收 30% / 上線 30%",
+    bankInfo: { ...DEFAULT_BANK },
+  },
+  {
+    id: "Q004", quoteNumber: "ZN-2026-004", customerId: "C004", clientName: "CHRIS 影音", clientContact: "CHRIS",
+    clientPhone: "", clientEmail: "", clientAddress: "",
+    projectName: "LINE 設備提醒自動化系統", projectType: "n8n 自動化流程建置",
+    items: [
+      { id: "I1", name: "需求訪談與系統架構設計", desc: "流程盤點、欄位規劃、通知時機設計（前一天 / 一週前）", qty: 1, unit: "式", price: 3000 },
+      { id: "I2", name: "Google Sheets + GAS 資料庫建置", desc: "行程提醒 / 成員對照表雙分頁、選單工具、假資料 seed、日期自動重排、狀態重置", qty: 1, unit: "式", price: 3500 },
+      { id: "I3", name: "n8n 自動化流程開發", desc: "排程觸發、Sheets 讀取、AI 訊息生成（GPT-4o mini）、LINE textV2 群組 @ 標記、Flex 訊息卡片、狀態回寫", qty: 1, unit: "式", price: 8000 },
+      { id: "I4", name: "LINE OA 整合設定", desc: "Channel Access Token 設定、成員 userId 收集、群組標記測試與除錯", qty: 1, unit: "式", price: 3000 },
+      { id: "I5", name: "教育訓練 + 操作手冊", desc: "線上 1 小時操作訓練，提供 Sheets 維護手冊與 n8n 工作流程原始檔（JSON）", qty: 1, unit: "小時", price: 2500 },
+    ],
+    taxRate: 5,
+    notes: "• 系統正式上線後提供 14 天密集保固期，此期間內的 Bug 修正完全免費。\n• 另收系統代管維護月費 NT$3,800/月（含主機分攤、AI API 成本、無限筆行程發送、每月一般修改調整、24 小時內優先回應）。\n• 綁約 12 個月一次付款享 9 折優惠：NT$41,040/年（原價 NT$45,600）。\n• 大型改動（新增 workflow、整合其他服務）另案報價。\n• 本報價單自發出日起 30 天內有效，逾期需重新報價。\n• 專案完成後，所有客製化開發之程式碼與工作流程歸業主所有。",
+    status: "draft",
+    createdAt: "2026-04-21", validUntil: "2026-05-21",
+    paymentTerms: "簽約 50% / 完成 50%",
     bankInfo: { ...DEFAULT_BANK },
   },
 ];
