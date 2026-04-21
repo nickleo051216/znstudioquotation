@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBs0RgULlWdJBf3c2VHRNPkYTSr-XLSv2M",
@@ -32,7 +32,7 @@ const customer = {
   createdAt: "2026-04-21",
 };
 
-const quote = {
+const buildQuote = (bankInfo) => ({
   id: "ZN-2026-004",
   quoteNumber: "ZN-2026-004",
   customerId: "C004",
@@ -56,8 +56,8 @@ const quote = {
   createdAt: "2026-04-21",
   validUntil: "2026-05-21",
   paymentTerms: "簽約 50% / 完成 50%",
-  bankInfo: { ...DEFAULT_BANK },
-};
+  bankInfo,
+});
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -66,6 +66,15 @@ const db = getFirestore(app);
 console.log("Signing in anonymously...");
 await signInAnonymously(auth);
 console.log("Signed in.");
+
+console.log("Reading settings/global for live bankInfo...");
+const settingsSnap = await getDoc(doc(db, "settings", "global"));
+const liveBank = settingsSnap.exists() && settingsSnap.data().bankInfo
+  ? settingsSnap.data().bankInfo
+  : DEFAULT_BANK;
+console.log("Using bankInfo:", liveBank);
+
+const quote = buildQuote(liveBank);
 
 console.log("Writing customer C004 (CHRIS 影音)...");
 await setDoc(doc(db, "customers", "C004"), {
