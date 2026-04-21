@@ -2,6 +2,11 @@ name: Seed Firestore (CHRIS quote)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/view-quote-content-gLdvF]
+    paths:
+      - 'scripts/seed-chris-quote.mjs'
+      - '.github/workflows/seed-firestore.yml'
 
 jobs:
   seed:
