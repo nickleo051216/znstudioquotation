@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, limit, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBs0RgULlWdJBf3c2VHRNPkYTSr-XLSv2M",
@@ -67,12 +67,46 @@ console.log("Signing in anonymously...");
 await signInAnonymously(auth);
 console.log("Signed in.");
 
-console.log("Reading settings/global for live bankInfo...");
-const settingsSnap = await getDoc(doc(db, "settings", "global"));
-const liveBank = settingsSnap.exists() && settingsSnap.data().bankInfo
-  ? settingsSnap.data().bankInfo
-  : DEFAULT_BANK;
-console.log("Using bankInfo:", liveBank);
+const isCompleteBank = (b) =>
+  b && b.bankName && b.bankCode && b.accountNumber;
+
+let liveBank = null;
+let bankSource = "";
+
+console.log("Step 1/2: reading latest existing quote for bankInfo...");
+try {
+  const qs = await getDocs(
+    query(collection(db, "quotations"), orderBy("createdAt", "desc"), limit(10))
+  );
+  for (const d of qs.docs) {
+    if (d.id === "ZN-2026-004") continue;
+    const data = d.data();
+    if (isCompleteBank(data.bankInfo)) {
+      liveBank = data.bankInfo;
+      bankSource = `quotations/${d.id}`;
+      break;
+    }
+  }
+} catch (e) {
+  console.log("  (failed to read quotations:", e.message, ")");
+}
+
+if (!liveBank) {
+  console.log("Step 2/2: fallback to settings/global...");
+  const settingsSnap = await getDoc(doc(db, "settings", "global"));
+  if (settingsSnap.exists() && isCompleteBank(settingsSnap.data().bankInfo)) {
+    liveBank = settingsSnap.data().bankInfo;
+    bankSource = "settings/global";
+  }
+}
+
+if (!liveBank) {
+  liveBank = DEFAULT_BANK;
+  bankSource = "DEFAULT_BANK (hardcoded fallback)";
+}
+
+console.log("bankInfo source:", bankSource);
+console.log("bankInfo:", liveBank);
 
 const quote = buildQuote(liveBank);
 
