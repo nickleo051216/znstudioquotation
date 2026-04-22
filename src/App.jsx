@@ -1042,8 +1042,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </div>
         </div>
 
-        {/* ═══════════ Print Footer Bar (only visible when printing) ═══════════ */}
-        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
+        {/* ═══════════ Print Footer Bar — fixed at bottom of every page ═══════════ */}
+        <div className="print-only print-fixed-footer hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
           <a href={brand.website} className="text-emerald-700 font-semibold">{brand.websiteDisplay}</a>
           <span>{brand.name}</span>
           <span className="font-mono font-semibold">{quote.quoteNumber}</span>
