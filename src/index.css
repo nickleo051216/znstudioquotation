@@ -32,10 +32,10 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
-  /* Reserve top margin on every page for the fixed header bar
-     Fixed header height ≈ 56–60px ≈ 16mm; add buffer → use 26mm */
+  /* Reserve top margin on every page for the fixed header bar.
+     26mm 還會吃掉區塊標題（付款條件 / 匯款資訊 那一行 ~6mm），推到 32mm 確保連標題都不被遮。 */
   @page {
-    margin: 26mm 10mm 12mm 10mm;
+    margin: 32mm 10mm 12mm 10mm;
   }
 
   /* Shrink fixed header to keep it compact inside the reserved margin */
