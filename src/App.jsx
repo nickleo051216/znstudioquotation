@@ -1008,8 +1008,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                 </div>
               )}
             </div>
-            {/* Right: Bank + Total */}
-            <div>
+            {/* Right: Bank + Total — use flex column so 合計 sticks to bottom, aligning with 備註 end */}
+            <div className="flex flex-col h-full">
               {bank.bankName && (
                 <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
                   <div className="flex items-center gap-2 mb-2"><Landmark size={14} className="text-blue-600" /><span className="text-xs font-bold text-blue-800">匯款資訊 Bank Transfer Info</span></div>
@@ -1022,8 +1022,8 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                   </div>
                 </div>
               )}
-              {/* Total */}
-              <div className="rounded-xl p-4 avoid-break" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+              {/* Total — mt-auto pushes to bottom of column */}
+              <div className="rounded-xl p-4 avoid-break mt-auto" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
                 <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>小計 Subtotal</span><span className="font-semibold">${fmt(subtotal)}</span></div>
                 <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>營業稅 Tax ({quote.taxRate}%)</span><span className="font-semibold">${fmt(tax)}</span></div>
                 <div className="flex justify-between py-3 text-lg font-bold" style={{ color: "#059669" }}><span>總計 Total</span><span>${fmt(total)}</span></div>
