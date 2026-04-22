@@ -1008,7 +1008,7 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                 </div>
               )}
             </div>
-            {/* Right: Bank + Signatures (fills gap) + Total (anchored bottom) */}
+            {/* Right: Bank → Total (top group) → Signatures (anchored bottom) */}
             <div className="flex flex-col h-full">
               {bank.bankName && (
                 <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
@@ -1023,8 +1023,15 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                 </div>
               )}
 
-              {/* Signatures — inline inside right column to fill the gap between 匯款 and 合計 */}
-              <div className="mb-4 avoid-break">
+              {/* Total — sits right under 匯款資訊 (top group) */}
+              <div className="rounded-xl p-4 avoid-break" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>小計 Subtotal</span><span className="font-semibold">${fmt(subtotal)}</span></div>
+                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>營業稅 Tax ({quote.taxRate}%)</span><span className="font-semibold">${fmt(tax)}</span></div>
+                <div className="flex justify-between py-3 text-lg font-bold" style={{ color: "#059669" }}><span>總計 Total</span><span>${fmt(total)}</span></div>
+              </div>
+
+              {/* Signatures — mt-auto pushes to bottom, aligning with 備註 end */}
+              <div className="mt-auto pt-6 avoid-break">
                 <div className="mb-4">
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">接案單位（簽章）</h4>
                   <p className="text-sm font-semibold text-gray-700">{brand.owner}｜{brand.name}</p>
@@ -1037,13 +1044,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                   <div className="border-b-2 border-gray-300 mt-10 mb-2" />
                   <p className="text-xs text-gray-400">簽名 / 日期</p>
                 </div>
-              </div>
-
-              {/* Total — mt-auto pushes to bottom of column */}
-              <div className="rounded-xl p-4 avoid-break mt-auto" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
-                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>小計 Subtotal</span><span className="font-semibold">${fmt(subtotal)}</span></div>
-                <div className="flex justify-between py-2 text-sm text-gray-600 border-b border-gray-100"><span>營業稅 Tax ({quote.taxRate}%)</span><span className="font-semibold">${fmt(tax)}</span></div>
-                <div className="flex justify-between py-3 text-lg font-bold" style={{ color: "#059669" }}><span>總計 Total</span><span>${fmt(total)}</span></div>
               </div>
             </div>
           </div>
