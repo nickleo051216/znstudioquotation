@@ -1044,9 +1044,14 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
         {/* ═══════════ Print Footer Bar — fixed at bottom of every page ═══════════ */}
         <div className="print-only print-fixed-footer hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
-          <a href={brand.website} className="text-emerald-700 font-semibold">{brand.websiteDisplay}</a>
-          <span>{brand.name}</span>
-          <span className="font-mono font-semibold">{quote.quoteNumber}</span>
+          <span className="text-emerald-700 font-semibold">{brand.websiteDisplay}</span>
+          <span className="flex items-center gap-3">
+            <span className="font-mono font-semibold text-gray-800">{quote.quoteNumber}</span>
+            <span className="text-gray-400">·</span>
+            <span>{quote.createdAt}</span>
+            <span className="text-gray-400">·</span>
+            <span className="font-bold text-emerald-700">NT$ {fmt(total)}</span>
+          </span>
         </div>
       </div>
     </div>
