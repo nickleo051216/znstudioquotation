@@ -372,10 +372,10 @@ const SAMPLE_QUOTES = [
       { id: "I2", name: "Google Sheets + GAS 資料庫建置", desc: "行程提醒 / 成員對照表雙分頁、選單工具、假資料 seed、日期自動重排、狀態重置", qty: 1, unit: "式", price: 3500 },
       { id: "I3", name: "n8n 自動化流程開發", desc: "排程觸發、Sheets 讀取、AI 訊息生成（GPT-4o mini）、LINE textV2 群組 @ 標記、Flex 訊息卡片、狀態回寫", qty: 1, unit: "式", price: 8000 },
       { id: "I4", name: "LINE OA 整合設定", desc: "Channel Access Token 設定、成員 userId 收集、群組標記測試與除錯", qty: 1, unit: "式", price: 3000 },
-      { id: "I5", name: "教育訓練 + 操作手冊", desc: "線上 1 小時操作訓練，提供 Sheets 維護手冊與 n8n 工作流程原始檔（JSON）", qty: 1, unit: "小時", price: 2500 },
+      { id: "I5", name: "上線啟用與交接 briefing", desc: "線上 1 小時 Google Sheets 填表教學（行程提醒、成員對照表維護）；系統由 ZN Studio 全程代管，業主僅需維護資料內容", qty: 1, unit: "小時", price: 2500 },
     ],
     taxRate: 5,
-    notes: "• 系統正式上線後提供 14 天密集保固期，此期間內的 Bug 修正完全免費。\n• 另收系統代管維護月費 NT$3,800/月（含主機分攤、AI API 成本、無限筆行程發送、每月一般修改調整、24 小時內優先回應）。\n• 綁約 12 個月一次付款享 9 折優惠：NT$41,040/年（原價 NT$45,600）。\n• 大型改動（新增 workflow、整合其他服務）另案報價。\n• 本報價單自發出日起 30 天內有效，逾期需重新報價。\n• 專案完成後，所有客製化開發之程式碼與工作流程歸業主所有。",
+    notes: "【本次建置費用】\n• 上方表格為「一次性建置費用」，含設計、開發、整合、上線啟用。\n• 付款條件（分兩期）：\n   ① 簽約金 50%：合約簽署後 7 個工作日內匯款，ZN Studio 收款後開始動工。\n   ② 驗收款 50%：系統驗收通過後 7 個工作日內匯款結清。\n• 驗收方式：系統交付後提供 7 天試行期，期間內系統需成功完成至少 3 次行程提醒發送（含 LINE 群組標記）；業主未於 7 天內提出具體異議，視同驗收通過。\n• 系統正式上線後提供 14 天密集保固期，此期間內的 Bug 修正完全免費。\n\n【系統代管月費（另計）】\n• 月付方案：NT$3,500 / 月（每月 5 號前匯款）\n   — 含主機分攤、AI API 成本、無限筆行程發送、每月一般修改調整、24 小時內優先回應。\n• 年付方案（優惠）：一次付清 NT$37,800 / 年\n   — 等於綁約 12 個月並享 9 折優惠，原價 NT$42,000，省 NT$4,200。\n• 代管服務自系統驗收通過日起計算，當月依實際服務天數比例計費。\n• 大型改動（新增 workflow、整合其他服務）另案報價，不含於月費內。\n\n【代管模式說明】\n• 系統由 ZN Studio 全程代管，業主僅需維護 Google Sheets 資料內容。\n• n8n 工作流程、GAS 原始碼、Flex 訊息版型歸 ZN Studio 所有，不隨建置交付。\n• 若服務終止，ZN Studio 將協助移交 LINE OA 憑證與 Google Sheets 資料（CSV 匯出），確保業主業務不中斷。\n• 若業主未來需要完整程式碼，可另案加購「原始碼轉移包」NT$8,000（含 n8n workflow JSON、GAS 腳本、技術文件）。\n\n【報價有效期】\n• 本報價單自發出日起 30 天內有效，逾期需重新報價。",
     status: "draft",
     createdAt: "2026-04-21", validUntil: "2026-05-21",
     paymentTerms: "簽約 50% / 完成 50%",
@@ -979,24 +979,14 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </table>
           </div>
 
-          {/* ── Payment / Bank / Notes / Total / Signature ── */}
-          <div style={{ breakInside: "avoid" }}>
-
-          {/* Payment + Bank — two columns on page 2 */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Payment + Bank + Total — compact 2-column block, keep together */}
+          <div className="grid grid-cols-2 gap-4 mb-4 avoid-break">
             {/* Left: Payment Terms */}
             <div>
               {quote.paymentTerms && (
-                <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                <div className="rounded-xl p-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                   <div className="flex items-center gap-2 mb-1"><CreditCard size={14} className="text-emerald-600" /><span className="text-xs font-bold text-emerald-800">付款條件 Payment Terms</span></div>
                   <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
-                </div>
-              )}
-              {/* Notes */}
-              {quote.notes && (
-                <div className="rounded-xl p-4 avoid-break" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-                  <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
-                  <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
                 </div>
               )}
             </div>
@@ -1023,8 +1013,16 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </div>
           </div>
 
+          {/* Notes — full width, can flow across pages */}
+          {quote.notes && (
+            <div className="rounded-xl p-4 mb-6" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+              <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
+              <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
+            </div>
+          )}
+
           {/* Footer - Signature Section */}
-          <div className="border-t border-gray-200 pt-4 mt-6">
+          <div className="border-t border-gray-200 pt-4 mt-6 avoid-break">
             <div className="grid grid-cols-2 gap-8">
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">接案單位（簽章）</h4>
@@ -1044,7 +1042,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
               </div>
             </div>
           </div>
-          </div>{/* end page 2 */}
         </div>
 
         {/* ═══════════ Print Footer Bar (only visible when printing) ═══════════ */}
