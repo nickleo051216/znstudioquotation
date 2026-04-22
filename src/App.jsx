@@ -979,14 +979,20 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </table>
           </div>
 
-          {/* Payment + Bank + Total — compact 2-column block, keep together */}
-          <div className="grid grid-cols-2 gap-4 mb-4 avoid-break">
-            {/* Left: Payment Terms */}
+          {/* Payment + Notes (left) / Bank + Total (right) — 2-column layout */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Left: Payment Terms + Notes */}
             <div>
               {quote.paymentTerms && (
-                <div className="rounded-xl p-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                <div className="rounded-xl p-4 mb-4 avoid-break" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                   <div className="flex items-center gap-2 mb-1"><CreditCard size={14} className="text-emerald-600" /><span className="text-xs font-bold text-emerald-800">付款條件 Payment Terms</span></div>
                   <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
+                </div>
+              )}
+              {quote.notes && (
+                <div className="rounded-xl p-4" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+                  <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
+                  <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
                 </div>
               )}
             </div>
@@ -1012,14 +1018,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
               </div>
             </div>
           </div>
-
-          {/* Notes — full width, can flow across pages */}
-          {quote.notes && (
-            <div className="rounded-xl p-4 mb-6" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-              <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
-              <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
-            </div>
-          )}
 
           {/* Footer - Signature Section */}
           <div className="border-t border-gray-200 pt-4 mt-6 avoid-break">
