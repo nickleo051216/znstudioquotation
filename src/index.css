@@ -32,9 +32,9 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
-  /* @page: 上邊距只留少量，下邊距給 fixed footer 空間（多留緩衝避免內容尾部撞到） */
+  /* @page: 簡單對稱邊距，沒有 fixed header/footer 要避開了 */
   @page {
-    margin: 10mm 10mm 28mm 10mm;
+    margin: 10mm;
     size: A4 portrait;
   }
 
@@ -62,30 +62,13 @@ th {
     display: flex !important;
   }
 
-  /* Top "fixed header" — disabled entirely.
-     Hero header in #printable-quote already provides page-1 branding,
-     and jetenv-style approach avoids cover-up by not repeating a header at top. */
-  .print-fixed-header {
-    display: none !important;
+  /* 🔑 讓 #printable-quote 裡的 <thead> 在每一頁都重複（不用 position:fixed，不會遮內容）*/
+  .print-page-wrapper thead {
+    display: table-header-group !important;
   }
 
-  /* Bottom footer — fixed at bottom of every page, sits in @page bottom margin.
-     11mm footer + 28mm @page bottom margin = 17mm safety buffer above footer. */
-  .print-fixed-footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 11mm !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 16px !important;
-    background: #f9fafb !important;
-    border-top: 1px solid #e5e7eb !important;
-    color: #6b7280 !important;
-    font-size: 9pt !important;
-    z-index: 9999 !important;
+  .print-page-wrapper tbody {
+    display: table-row-group !important;
   }
 
   /* Main content area - take full width */
