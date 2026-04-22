@@ -1050,13 +1050,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
           {/* (簽章已搬到右邊欄，這裡不再渲染獨立簽章區) */}
         </div>
-
-        {/* ═══════════ Static Footer Bar — only renders at end of document (last page) ═══════════ */}
-        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
-          <span className="text-emerald-700 font-semibold">{brand.websiteDisplay}</span>
-          <span>{brand.name}</span>
-          <span className="font-mono font-semibold">{quote.quoteNumber}</span>
-        </div>
               </td>
             </tr>
           </tbody>
