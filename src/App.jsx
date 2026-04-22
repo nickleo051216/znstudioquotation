@@ -890,19 +890,31 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
 
       {/* Printable Quote Container */}
       <div id="printable-quote" className="quote-container bg-white rounded-2xl shadow-sm border border-gray-100 max-w-4xl mx-auto overflow-hidden">
-
-        {/* ═══════════ Print Header Bar (repeats on every page) ═══════════ */}
-        <div className="print-only print-fixed-header hidden print:flex items-center justify-between px-6 py-3 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm bg-white/20 text-white">ZN</div>
-            <span className="text-white font-bold text-sm">{brand.name}</span>
-          </div>
-          <div className="flex items-center gap-4 text-white text-xs">
-            <span>報價單號：<strong className="font-mono">{quote.quoteNumber}</strong></span>
-            <span>{quote.createdAt}</span>
-            <span className="px-2 py-1 bg-white/20 rounded font-bold">NT$ {fmt(total)}</span>
-          </div>
-        </div>
+        {/* Wrap everything in a table so <thead> repeats on every printed page via display:table-header-group */}
+        <table className="print-page-wrapper w-full" style={{ borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <td style={{ padding: 0 }}>
+                {/* 🔁 每頁都會重複顯示的頂部 banner — 使用瀏覽器 thead 機制，不會遮到內容 */}
+                <div className="print-only print-page-header hidden print:flex items-center justify-between px-5 border-b border-gray-200" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)", height: "10mm" }}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded flex items-center justify-center font-black text-xs bg-white/20 text-white">ZN</div>
+                    <span className="text-white font-bold text-xs">{brand.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-white" style={{ fontSize: "9pt" }}>
+                    <span className="font-mono">{quote.quoteNumber}</span>
+                    <span className="opacity-60">·</span>
+                    <span>{quote.createdAt}</span>
+                    <span className="opacity-60">·</span>
+                    <span className="px-2 py-0.5 bg-white/20 rounded font-bold">NT$ {fmt(total)}</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ padding: 0 }}>
 
         {/* Main Header */}
         <div className="p-8 pb-6" style={{ background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)" }}>
@@ -1042,17 +1054,16 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
           </div>
         </div>
 
-        {/* ═══════════ Print Footer Bar — fixed at bottom of every page ═══════════ */}
-        <div className="print-only print-fixed-footer hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
+        {/* ═══════════ Static Footer Bar — only renders at end of document (last page) ═══════════ */}
+        <div className="print-only hidden print:flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-600">
           <span className="text-emerald-700 font-semibold">{brand.websiteDisplay}</span>
-          <span className="flex items-center gap-3">
-            <span className="font-mono font-semibold text-gray-800">{quote.quoteNumber}</span>
-            <span className="text-gray-400">·</span>
-            <span>{quote.createdAt}</span>
-            <span className="text-gray-400">·</span>
-            <span className="font-bold text-emerald-700">NT$ {fmt(total)}</span>
-          </span>
+          <span>{brand.name}</span>
+          <span className="font-mono font-semibold">{quote.quoteNumber}</span>
         </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
