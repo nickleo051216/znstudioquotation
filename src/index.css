@@ -32,9 +32,9 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
-  /* @page: 上邊距只留少量，下邊距給 fixed footer 空間 */
+  /* @page: 上邊距只留少量，下邊距給 fixed footer 空間（多留緩衝避免內容尾部撞到） */
   @page {
-    margin: 10mm 10mm 20mm 10mm;
+    margin: 10mm 10mm 28mm 10mm;
     size: A4 portrait;
   }
 
@@ -70,13 +70,13 @@ th {
   }
 
   /* Bottom footer — fixed at bottom of every page, sits in @page bottom margin.
-     14mm height fits inside the 20mm reserved bottom margin with 6mm buffer. */
+     11mm footer + 28mm @page bottom margin = 17mm safety buffer above footer. */
   .print-fixed-footer {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 14mm !important;
+    height: 11mm !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -84,7 +84,7 @@ th {
     background: #f9fafb !important;
     border-top: 1px solid #e5e7eb !important;
     color: #6b7280 !important;
-    font-size: 10pt !important;
+    font-size: 9pt !important;
     z-index: 9999 !important;
   }
 
