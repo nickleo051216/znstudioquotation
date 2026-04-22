@@ -32,6 +32,11 @@ th {
 /* ─── Print styles - Complete overhaul ─── */
 @media print {
 
+  /* Reserve top margin on every page for the fixed header bar */
+  @page {
+    margin: 18mm 10mm 12mm 10mm;
+  }
+
   /* Preserve colors */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -110,18 +115,13 @@ th {
     break-after: page;
   }
 
-  /* Print header bar — fixed at top of every page */
+  /* Print header bar — fixed at top of every page (sits inside @page top margin) */
   .print-fixed-header {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 9999 !important;
-  }
-
-  /* Push content down so it doesn't hide behind the fixed header */
-  #printable-quote {
-    padding-top: 50px !important;
   }
 }
 
