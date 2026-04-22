@@ -1031,23 +1031,19 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
             </div>
           </div>
 
-          {/* Footer - Signature Section */}
-          <div className="border-t border-gray-200 pt-4 mt-6 avoid-break">
+          {/* Footer - Signature Section (compact, aim to fit on same page as notes/total) */}
+          <div className="border-t border-gray-200 pt-3 mt-3 avoid-break">
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">接案單位（簽章）</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">接案單位（簽章）</h4>
                 <p className="text-sm font-semibold text-gray-700 mb-1">{brand.owner}｜{brand.name}</p>
-                <div className="space-y-0.5 text-xs text-gray-500 mb-8">
-                  <p>{brand.email}</p>
-                  <p>{brand.phone}</p>
-                  <p>{brand.websiteDisplay}</p>
-                </div>
+                <p className="text-xs text-gray-500 mb-4">{brand.email} · {brand.phone} · {brand.websiteDisplay}</p>
                 <div className="border-b-2 border-gray-300 mb-2" />
                 <p className="text-xs text-gray-400">簽名 / 日期：{new Date().toLocaleDateString('zh-TW')}</p>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">客戶確認簽回（簽章）</h4>
-                <div className="border-b-2 border-gray-300 mt-16 mb-2" />
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">客戶確認簽回（簽章）</h4>
+                <div className="border-b-2 border-gray-300 mt-10 mb-2" />
                 <p className="text-xs text-gray-400">簽名 / 日期</p>
               </div>
             </div>
