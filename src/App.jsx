@@ -1287,6 +1287,13 @@ const SettingsPage = ({ bankInfo, setBankInfo, notesTemplates, setNotesTemplates
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h2 className="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2"><Landmark size={16} className="text-emerald-600" /> 預設匯款資訊</h2>
         <p className="text-xs text-gray-400 mb-5">新建報價單時會自動帶入這組預設匯款資訊</p>
+        <div className="mb-5 p-3 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+          <p className="text-xs font-semibold text-amber-800 mb-1">⚠ 重要提醒</p>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            匯款資訊請在這裡修改，<strong>不要直接改 Google Sheets「匯款資訊」工作表</strong>。
+            <br />Sheets 是單向備份（Firebase → Sheets），手動改 Sheets 不會同步回來。
+          </p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">銀行名稱</label><input value={bankInfo.bankName} onChange={e => setBankInfo(p => ({ ...p, bankName: e.target.value }))} className={inputClsN} /></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">銀行代碼</label><input value={bankInfo.bankCode} onChange={e => setBankInfo(p => ({ ...p, bankCode: e.target.value }))} className={inputClsN} /></div>
