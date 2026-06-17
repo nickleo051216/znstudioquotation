@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import {
   FileText, Users, LayoutDashboard, Settings, Plus, Search, Eye, Edit3,
@@ -1392,6 +1392,9 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // 用於避免 Firebase 載入完成前，前端就把 DEFAULT_BANK / DEFAULT_BRAND 覆寫回 Firebase
+  const isInitialLoadDone = useRef(false);
+
   const showToast = (message, type = "success") => {
     setToast({ message, type });
   };
@@ -1413,6 +1416,8 @@ export default function App() {
   // 持久化 brand 到 localStorage 並同步到 Firebase
   useEffect(() => {
     localStorage.setItem("zn_brand", JSON.stringify(brand));
+    // ⚠ 重要：初始載入完成前不要 saveSettings，避免把 DEFAULT_BANK 覆寫真實 Firebase 資料
+    if (!isInitialLoadDone.current) return;
     // Debounce save to Firebase to avoid too many writes
     const timer = setTimeout(() => {
       api.saveSettings({ brand, bankInfo });
@@ -1458,6 +1463,9 @@ export default function App() {
         setCustomers(SAMPLE_CUSTOMERS);
       } finally {
         setLoading(false);
+        // ⚠ 重要：標記初始載入已完成，之後 brand/bankInfo 變動才會 saveSettings
+        // 用 setTimeout 確保 setState 都已 flush 到下個 render
+        setTimeout(() => { isInitialLoadDone.current = true; }, 100);
       }
     };
     loadData();
