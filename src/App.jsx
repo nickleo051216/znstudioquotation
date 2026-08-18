@@ -1001,12 +1001,6 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
                   <p className="text-sm text-emerald-700">{quote.paymentTerms}</p>
                 </div>
               )}
-              {quote.notes && (
-                <div className="rounded-xl p-4" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-                  <div className="flex items-center gap-2 mb-1"><AlertCircle size={14} className="text-amber-600" /><span className="text-xs font-bold text-amber-800">備註 Notes</span></div>
-                  <div className="text-sm text-amber-700 whitespace-pre-line">{quote.notes}</div>
-                </div>
-              )}
             </div>
             {/* Right: Bank → Total (top group) → Signatures (anchored bottom) */}
             <div className="flex flex-col h-full">
@@ -1047,6 +1041,35 @@ const QuotePreview = ({ quote, onBack, updateQuoteStatus, brand }) => {
               </div>
             </div>
           </div>
+
+          {/* Notes — 獨立區塊，列印時自成一頁；【】自動轉為小標 */}
+          {quote.notes && (
+            <div className="page-break-before">
+              <div className="rounded-xl p-5" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+                <div className="flex items-center gap-2 mb-3 pb-2" style={{ borderBottom: "1px solid #fde68a" }}>
+                  <AlertCircle size={15} className="text-amber-600" />
+                  <span className="text-sm font-bold text-amber-800">備註說明 Notes</span>
+                </div>
+                <div className="space-y-3">
+                  {String(quote.notes).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map((para, i) => {
+                    const m = para.match(/^【(.+?)】\s*([\s\S]*)$/);
+                    return (
+                      <div key={i} className="avoid-break">
+                        {m ? (
+                          <>
+                            <div className="text-xs font-bold text-amber-900 mb-1">{m[1]}</div>
+                            <div className="text-sm text-amber-800 leading-relaxed whitespace-pre-line">{m[2].trim()}</div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-amber-800 leading-relaxed whitespace-pre-line">{para}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* (簽章已搬到右邊欄，這裡不再渲染獨立簽章區) */}
         </div>
