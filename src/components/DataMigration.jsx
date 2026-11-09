@@ -5,10 +5,10 @@ import { Database, Download, AlertTriangle, CheckCircle, Loader2 } from 'lucide-
 
 // 舊的 n8n API Webhooks (用於抓取資料) - HARDCODED FOR MIGRATION
 const OLD_WEBHOOKS = {
-    readQuotes: "https://nickleo9.zeabur.app/webhook/read-quotes",
-    readCustomers: "https://nickleo9.zeabur.app/webhook/read-customers",
-    readServices: "https://nickleo9.zeabur.app/webhook/read-services",
-    readNotesTemplates: "https://nickleo9.zeabur.app/webhook/read-notes-templates",
+    readQuotes: "https://n8n.znstudio216.com/webhook/read-quotes",
+    readCustomers: "https://n8n.znstudio216.com/webhook/read-customers",
+    readServices: "https://n8n.znstudio216.com/webhook/read-services",
+    readNotesTemplates: "https://n8n.znstudio216.com/webhook/read-notes-templates",
 };
 
 const COLLECTIONS = {
