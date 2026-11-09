@@ -9,7 +9,7 @@
 
 ## 🌐 線上網址
 
-**https://znstudioquotation.zeabur.app/**
+**https://nickleo051216.github.io/znstudioquotation/**
 
 ---
 
@@ -59,12 +59,12 @@
 
 | 功能 | Method | URL |
 |------|--------|-----|
-| 讀取報價單 | GET | `https://nickleo9.zeabur.app/webhook/read-quotes` |
-| 寫入報價單 | POST | `https://nickleo9.zeabur.app/webhook/write-quote` |
-| 讀取客戶 | GET | `https://nickleo9.zeabur.app/webhook/read-customers` |
-| 寫入客戶 | POST | `https://nickleo9.zeabur.app/webhook/write-customer` |
-| 寄送報價單 | POST | `https://nickleo9.zeabur.app/webhook/send-email` |
-| 統編查詢 | GET | `https://nickleo9.zeabur.app/webhook/lookup-taxid` |
+| 讀取報價單 | GET | `https://n8n.znstudio216.com/webhook/read-quotes` |
+| 寫入報價單 | POST | `https://n8n.znstudio216.com/webhook/write-quote` |
+| 讀取客戶 | GET | `https://n8n.znstudio216.com/webhook/read-customers` |
+| 寫入客戶 | POST | `https://n8n.znstudio216.com/webhook/write-customer` |
+| 寄送報價單 | POST | `https://n8n.znstudio216.com/webhook/send-email` |
+| 統編查詢 | GET | `https://n8n.znstudio216.com/webhook/lookup-taxid` |
 
 ### Google Sheets
 

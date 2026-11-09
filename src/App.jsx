@@ -53,10 +53,10 @@ const COLLECTIONS = {
 
 // ─── Sync Webhooks (For Hybrid Sync) ───
 const SYNC_WEBHOOKS = {
-  writeQuote: "https://nickleo9.zeabur.app/webhook/write-quote",
-  writeCustomer: "https://nickleo9.zeabur.app/webhook/write-customer",
-  writeService: "https://nickleo9.zeabur.app/webhook/write-service",
-  writeNoteTemplate: "https://nickleo9.zeabur.app/webhook/write-note-template",
+  writeQuote: "https://n8n.znstudio216.com/webhook/write-quote",
+  writeCustomer: "https://n8n.znstudio216.com/webhook/write-customer",
+  writeService: "https://n8n.znstudio216.com/webhook/write-service",
+  writeNoteTemplate: "https://n8n.znstudio216.com/webhook/write-note-template",
 };
 
 // ─── Sync Helper (Fire and Forget) ───
@@ -232,7 +232,7 @@ const api = {
   // 寄送郵件 (保留 n8n webhook，因為這需要後端處理)
   async sendQuoteEmail(quote) {
     try {
-      const res = await fetch("https://nickleo9.zeabur.app/webhook/send-email", {
+      const res = await fetch("https://n8n.znstudio216.com/webhook/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quote),
@@ -247,7 +247,7 @@ const api = {
   // 統編查詢 (保留 n8n webhook)
   async lookupTaxId(taxId) {
     try {
-      const res = await fetch(`https://nickleo9.zeabur.app/webhook/lookup-taxid?taxId=${taxId}`);
+      const res = await fetch(`https://n8n.znstudio216.com/webhook/lookup-taxid?taxId=${taxId}`);
       return await res.json();
     } catch (err) {
       console.error("Failed to lookup taxId:", err);
